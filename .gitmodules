@@ -1,0 +1,3 @@
+[submodule "verademo-python"]
+	path = verademo-python
+	url = https://github.com/veracode-demo-labs/verademo-python
