@@ -1,0 +1,5 @@
+The file only maps URL paths to view functions. It contains no user-input handling, no sinks, and no credentials, so nothing here is exploitable on its own.
+
+Some of the routes look sensitive, such as `password-hint`, `reset`, `downloadprofileimage` and `tools`. Any flaw in them would be in the view code, which is not shown, so reporting one would be speculation.
+
+{"findings": []}

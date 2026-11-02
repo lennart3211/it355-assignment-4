@@ -1,0 +1,13 @@
+The code takes the Host header, which the client controls, and uses it to build a URL that the server then requests. That is a server-side request forgery (SSRF). The host part comes from the `HTTP_HOST` header, with the port stripped. The port is taken from `SERVER_PORT`, and the path is fixed to `/feed`.
+
+An attacker can send a request with `Host: internal-service` or `169.254.169.254`. The server then issues a request to `http://internal-service:<SERVER_PORT>/feed`. The path is fixed and the response is not returned, so the impact is limited (blind SSRF, port constrained). It is still a real SSRF.
+
+Only the Host header is attacker-controlled. A Host value such as `evil.com#` would be split on `:`, so `evil.com#` would yield the URL `http://evil.com#:8000/feed`, where the fragment swallows the rest. That lets the attacker control the destination host and ignore the port. The request is made only when the session has a username, so the attacker must be authenticated, or must be tricking a victim's browser, though Host header control makes this harder for a victim.
+
+Separately, `import urllib` does not import `urllib.request`, but it may work if another module has imported it. That is a functional issue, not a security one.
+
+The bare `except` is a code quality issue only.
+
+<br>
+
+{"findings": [{"start_line": 13, "end_line": 16, "function": "home", "cwe_id": "CWE-918", "cwe_name": "Server-Side Request Forgery (SSRF)", "severity": "Medium", "confidence": "Medium", "description": "The attacker-controlled HTTP Host header is used to build a URL that the server requests with urllib.request.urlopen. An attacker can make the server send requests to arbitrary internal or external hosts (blind SSRF), for example by sending a crafted Host header.", "vulnerable_snippet": "host_ip = request.META['HTTP_HOST'].split(':')[0]\n            print(\"da\")\n            redir = urllib.request.Request('http://' + host_ip + ':' + request.META['SERVER_PORT'] + '/feed')\n            urllib.request.urlopen(redir, timeout=5)"}]}
