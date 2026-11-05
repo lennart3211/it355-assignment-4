@@ -1,0 +1,103 @@
+{
+  "findings": [
+    {
+      "start_line": 51,
+      "end_line": 51,
+      "function": "feed",
+      "cwe_id": "CWE-89",
+      "cwe_name": "SQL Injection",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "The user-controlled 'username' from the session is interpolated directly into a SQL query string, allowing for SQL injection.",
+      "vulnerable_snippet": "cursor.execute(blabsForMe % (username,))"
+    },
+    {
+      "start_line": 75,
+      "end_line": 75,
+      "function": "feed",
+      "cwe_id": "CWE-89",
+      "cwe_name": "SQL Injection",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "The user-controlled 'username' from the session is interpolated directly into a SQL query string, allowing for SQL injection.",
+      "vulnerable_snippet": "cursor.execute(sqlBlabsByMe % (username,))"
+    },
+    {
+      "start_line": 120,
+      "end_line": 120,
+      "function": "feed",
+      "cwe_id": "CWE-89",
+      "cwe_name": "SQL Injection",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "User-supplied input 'blab' is interpolated directly into an INSERT SQL query, allowing for SQL injection.",
+      "vulnerable_snippet": "cursor.execute(addBlabSql % (username, blab))"
+    },
+    {
+      "start_line": 162,
+      "end_line": 162,
+      "function": "morefeed",
+      "cwe_id": "CWE-89",
+      "cwe_name": "SQL Injection",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "The user-controlled 'username' from the session is interpolated directly into a SQL query string, allowing for SQL injection.",
+      "vulnerable_snippet": "cursor.execute(blabsForMe % (username,))"
+    },
+    {
+      "start_line": 201,
+      "end_line": 201,
+      "function": "blab",
+      "cwe_id": "CWE-89",
+      "cwe_name": "SQL Injection",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "User-supplied 'blabid' from request parameters is interpolated directly into a SQL query string, allowing for SQL injection.",
+      "vulnerable_snippet": "cursor.execute(blabDetailsSql % (blabid,))"
+    },
+    {
+      "start_line": 211,
+      "end_line": 211,
+      "function": "blab",
+      "cwe_id": "CWE-89",
+      "cwe_name": "SQL Injection",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "User-supplied 'blabid' from request parameters is interpolated directly into a SQL query string, allowing for SQL injection.",
+      "vulnerable_snippet": "cursor.execute(blabCommentsSql % (blabid,))"
+    },
+    {
+      "start_line": 257,
+      "end_line": 257,
+      "function": "blab",
+      "cwe_id": "CWE-89",
+      "cwe_name": "SQL Injection",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "Multiple user-supplied inputs ('blabid', 'comment') are interpolated directly into an INSERT SQL query, leading to SQL injection.",
+      "vulnerable_snippet": "cursor.execute(addCommentSql % (blabid, username, comment, moment.now().format(\"YYYY-MM-DD hh:mm:ss\")))"
+    },
+    {
+      "start_line": 292,
+      "end_line": 292,
+      "function": "blabbers",
+      "cwe_id": "CWE-89",
+      "cwe_name": "SQL Injection",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "The 'sort' parameter is directly concatenated into the SQL query string, allowing for blind or union-based SQL injection.",
+      "vulnerable_snippet": "blabbersSql = (\"SELECT users.username,\" + \" users.blab_name,\" + \" users.created_at,\" + ... \" ORDER BY \" + sort + \";\")"
+    },
+    {
+      "start_line": 348,
+      "end_line": 348,
+      "function": "blabbers",
+      "cwe_id": "CWE-95",
+      "cwe_name": "Improper Neutralization of Directives in Dynamically Evaluated Code (Eval Injection)",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "The application uses eval() on user-controlled input ('command'), leading to remote code execution.",
+      "vulnerable_snippet": "cmdClass = eval(module)"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{"findings": [
+  {
+    "start_line": 63,
+    "end_line": 63,
+    "function": "reset",
+    "cwe_id": "CWE-295",
+    "cwe_name": "Improper Certificate Validation",
+    "severity": "High",
+    "confidence": "High",
+    "description": "The httplib2 client is configured with disable_ssl_certificate_validation=True, which ignores SSL certificate errors and exposes the connection to man-in-the-middle attacks.",
+    "vulnerable_snippet": "h = httplib2.Http(\".cache\", disable_ssl_certificate_validation=True) #CWE-295"
+  },
+  {
+    "start_line": 64,
+    "end_line": 64,
+    "function": "reset",
+    "cwe_id": "CWE-798",
+    "cwe_name": "Use of Hard-coded Credentials",
+    "severity": "High",
+    "confidence": "High",
+    "description": "Hard-coded credentials are used for authentication in the httplib2 request configuration, which could allow unauthorized access.",
+    "vulnerable_snippet": "h.add_credentials('thiswaskevinsidea','hardcode') #CWE-798"
+  },
+  {
+    "start_line": 102,
+    "end_line": 103,
+    "function": "processReset",
+    "cwe_id": "CWE-89",
+    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+    "severity": "Critical",
+    "confidence": "High",
+    "description": "SQL injection occurs through the manual formatting of the usersStatement string with user-controlled data fields using the '%' operator.",
+    "vulnerable_snippet": "cursor.execute(usersStatement % (user.username, user.password, user.password_hint, user.totp_secret, user.created_at,\n                                                     user.last_login, user.real_name, user.blab_name))"
+  },
+  {
+    "start_line": 116,
+    "end_line": 116,
+    "function": "processReset",
+    "cwe_id": "CWE-89",
+    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+    "severity": "Critical",
+    "confidence": "High",
+    "description": "SQL injection occurs through the manual formatting of the listenersStatement string with user-controlled data fields using the '%' operator.",
+    "vulnerable_snippet": "cursor.execute(listenersStatement % (blabber.username, listener.username))"
+  }
+]}

@@ -1,0 +1,57 @@
+{"findings": [
+  {
+    "start_line": 69,
+    "end_line": 69,
+    "function": "login",
+    "cwe_id": "CWE-502",
+    "cwe_name": "Insecure Deserialization",
+    "severity": "Critical",
+    "confidence": "High",
+    "description": "The application uses pickle.loads() on data retrieved from a user-controlled cookie, which can lead to arbitrary code execution.",
+    "vulnerable_snippet": "unencodedUserDetails = pickle.loads(decoded)"
+  },
+  {
+    "start_line": 103,
+    "end_line": 105,
+    "function": "login",
+    "cwe_id": "CWE-89",
+    "cwe_name": "SQL Injection",
+    "severity": "Critical",
+    "confidence": "High",
+    "description": "User input from the POST request is directly concatenated into a SQL query string without sanitization, allowing for SQL injection.",
+    "vulnerable_snippet": "sqlQuery = \"select username, password, password_hint, created_at, last_login, \\\n                            real_name, blab_name from users where username='\" + username + \"' \\\n                            and password='\" + hashlib.md5(password.encode('utf-8')).hexdigest() + \"';\""
+  },
+  {
+    "start_line": 128,
+    "end_line": 129,
+    "function": "login",
+    "cwe_id": "CWE-326",
+    "cwe_name": "Inadequate Encryption Strength",
+    "severity": "Medium",
+    "confidence": "High",
+    "description": "The application generates RSA private keys with a key size of 1024 bits, which is considered cryptographically weak and insecure for current standards.",
+    "vulnerable_snippet": "private_key = rsa.generate_private_key(\n                        public_exponent=65537, key_size=1024,)"
+  },
+  {
+    "start_line": 184,
+    "end_line": 184,
+    "function": "showPasswordHint",
+    "cwe_id": "CWE-89",
+    "cwe_name": "SQL Injection",
+    "severity": "Critical",
+    "confidence": "High",
+    "description": "User input from a GET parameter is directly concatenated into a SQL query string without sanitization, allowing for SQL injection.",
+    "vulnerable_snippet": "sql = \"SELECT password_hint FROM users WHERE username = '\" + username + \"'\""
+  },
+  {
+    "start_line": 225,
+    "end_line": 225,
+    "function": "showTotp",
+    "cwe_id": "CWE-89",
+    "cwe_name": "SQL Injection",
+    "severity": "Critical",
+    "confidence": "High",
+    "description": "User input from the session is used in a database query without proper parameterization.",
+    "vulnerable_snippet": "sql = \"SELECT totp_secret FROM users WHERE username = '\" + username + \"'\""
+  }
+]}

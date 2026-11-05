@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 
-MODEL = "gemma-4-31b-it"
+MODEL = "gemini-3.1-flash-lite"
 KEY_NAME = "GEMINI_API_KEY"
 CHUNK_LINES = 400
 SKIP_DIRS = {".git", "node_modules", "venv", ".venv", "__pycache__", "target",
@@ -65,19 +65,15 @@ FINDING_PROPERTIES = {
     "description": {"type": "string"},
     "vulnerable_snippet": {"type": "string"},
 }
-FINDINGS_SCHEMA = {
-    "type": "object",
-    "properties": {"findings": {"type": "array", "items": {
-        "type": "object", "properties": FINDING_PROPERTIES,
-        "required": list(FINDING_PROPERTIES),
-    }}},
-    "required": ["findings"],
-}
 CWE_RE = re.compile(r"^CWE-[1-9]\d*$")
 
 
-def build_user_prompt(rel_path, numbered_code):
-    return f"File: {rel_path}\n\n```\n{numbered_code}\n```"
+class GeminiResponseError(RuntimeError):
+    """Raised when Gemini returns no usable response text."""
+
+
+def build_user_prompt(system, rel_path, numbered_code):
+    return f"{system}\n\nFile: {rel_path}\n\n```\n{numbered_code}\n```"
 
 
 def prepare_credentials(prompt_keys=False):
@@ -114,13 +110,19 @@ def call_gemini(system, user, model):
         model=model,
         contents=user,
         config={
-            "system_instruction": system,
             "response_mime_type": "application/json",
-            "response_json_schema": FINDINGS_SCHEMA,
             "max_output_tokens": 8192,
         },
     )
-    return response.text or ""
+    try:
+        text = response.text
+    except ValueError as error:
+        raise GeminiResponseError(
+            f"response has no text ({type(error).__name__})"
+        ) from None
+    if not text:
+        raise GeminiResponseError("response has empty text")
+    return text
 
 
 def error_status(error):
@@ -142,8 +144,10 @@ def call_with_retry(system, user, model, retries=4):
                              "TimeoutError", "TimeoutException", "ReadTimeout", "ConnectTimeout",
                              "APITimeoutError", "APIConnectionError", "ConnectError",
                          })
-            # Do not print exception text: SDK errors can contain request details.
-            print(f"    [gemini] request failed (HTTP {status or 'unknown'}).")
+            print(
+                f"    [gemini] request failed "
+                f"({type(error).__name__}, HTTP {status or 'unknown'}): {error}"
+            )
             if not retryable or attempt + 1 == retries:
                 return None
             delay = 5 * 2 ** attempt
@@ -159,8 +163,11 @@ def parse_findings(raw):
     if text.startswith("```"):
         text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.I)
         text = re.sub(r"\s*```$", "", text)
+    start, end = text.find("{"), text.rfind("}")
+    if start == -1 or end == -1 or start > end:
+        return None
     try:
-        data = json.loads(text)
+        data = json.loads(text[start:end + 1])
     except json.JSONDecodeError:
         return None
     # Missing findings is not equivalent to an explicit, successful empty list.
@@ -272,7 +279,11 @@ def main(argv=None):
         for relative, lines in inputs:
             for lo, hi, numbered in chunks(lines):
                 print(f"  [gemini] {relative}:{lo}-{hi}")
-                raw = call_with_retry(SYSTEM_PROMPT, build_user_prompt(relative, numbered), args.model)
+                raw = call_with_retry(
+                    SYSTEM_PROMPT,
+                    build_user_prompt(SYSTEM_PROMPT, relative, numbered),
+                    args.model,
+                )
                 raw_file = out / "raw" / "gemini" / relative / f"{lo}-{hi}.txt"
                 raw_file.parent.mkdir(parents=True, exist_ok=True)
                 raw_file.write_text(raw or "", encoding="utf-8")

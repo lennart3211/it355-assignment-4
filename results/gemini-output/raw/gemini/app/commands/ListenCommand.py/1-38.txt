@@ -1,11 +1,35 @@
-{"findings": [{
-  "start_line": 22,
-  "end_line": 22,
-  "function": "execute",
-  "cwe_id": "CWE-89",
-  "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command",
-  "severity": "Critical",
-  "confidence": "High",
-  "description": "User-supplied input 'blabberUsername' is directly formatted into an SQL query string and executed, allowing potential SQL injection attacks.",
-  "vulnerable_snippet": "            self.cursor.execute(sqlQuery % (blabberUsername, self.username))"
-}]}
+{"findings": [
+  {
+    "start_line": 22,
+    "end_line": 22,
+    "function": "execute",
+    "cwe_id": "CWE-89",
+    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+    "severity": "Critical",
+    "confidence": "High",
+    "description": "The application uses string formatting to construct SQL queries with user-supplied input 'blabberUsername', allowing for arbitrary SQL command execution.",
+    "vulnerable_snippet": "self.cursor.execute(sqlQuery % (blabberUsername, self.username))"
+  },
+  {
+    "start_line": 26,
+    "end_line": 26,
+    "function": "execute",
+    "cwe_id": "CWE-89",
+    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+    "severity": "Critical",
+    "confidence": "High",
+    "description": "The application performs string concatenation of user-supplied 'blabberUsername' into an SQL query, leading to potential SQL injection vulnerabilities.",
+    "vulnerable_snippet": "self.cursor.execute(sqlQuery)"
+  },
+  {
+    "start_line": 32,
+    "end_line": 32,
+    "function": "execute",
+    "cwe_id": "CWE-89",
+    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+    "severity": "Critical",
+    "confidence": "High",
+    "description": "The application constructs an SQL query by concatenating user-controlled data ('event') into the query string, which can lead to SQL injection.",
+    "vulnerable_snippet": "self.cursor.execute(sqlQuery)"
+  }
+]}

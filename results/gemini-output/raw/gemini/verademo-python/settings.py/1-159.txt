@@ -1,0 +1,46 @@
+{"findings": [
+  {
+    "start_line": 24,
+    "end_line": 24,
+    "function": "",
+    "cwe_id": "CWE-798",
+    "cwe_name": "Use of Hard-coded Credentials",
+    "severity": "High",
+    "confidence": "High",
+    "description": "The SECRET_KEY is hard-coded in the source code, which could allow an attacker to forge session cookies or tamper with cryptographic signatures.",
+    "vulnerable_snippet": "SECRET_KEY = 'django-insecure-m(k83)=fpt1d5&(u6_$+3ppc6s7!_(9!vps5f17yqp4=6ei$vv'"
+  },
+  {
+    "start_line": 27,
+    "end_line": 27,
+    "function": "",
+    "cwe_id": "CWE-489",
+    "cwe_name": "Leftover Debug Code",
+    "severity": "High",
+    "confidence": "High",
+    "description": "DEBUG is set to True, which may expose sensitive information such as stack traces and environment variables in the event of an application error.",
+    "vulnerable_snippet": "DEBUG = True"
+  },
+  {
+    "start_line": 30,
+    "end_line": 30,
+    "function": "",
+    "cwe_id": "CWE-20",
+    "cwe_name": "Improper Input Validation",
+    "severity": "Medium",
+    "confidence": "High",
+    "description": "The ALLOWED_HOSTS setting is configured to '*', which makes the application vulnerable to Host header injection attacks.",
+    "vulnerable_snippet": "ALLOWED_HOSTS = ['*']"
+  },
+  {
+    "start_line": 49,
+    "end_line": 49,
+    "function": "",
+    "cwe_id": "CWE-352",
+    "cwe_name": "Cross-Site Request Forgery (CSRF)",
+    "severity": "High",
+    "confidence": "High",
+    "description": "The CsrfViewMiddleware is disabled in the MIDDLEWARE settings, leaving the application vulnerable to Cross-Site Request Forgery attacks.",
+    "vulnerable_snippet": "#'django.middleware.csrf.CsrfViewMiddleware',"
+  }
+]}

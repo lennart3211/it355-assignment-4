@@ -1,3 +1,11 @@
-{
-  "findings": []
-}
+{"findings": [{
+  "start_line": 7,
+  "end_line": 7,
+  "function": "UserAdmin",
+  "cwe_id": "CWE-256",
+  "cwe_name": "Plaintext Storage of a Password",
+  "severity": "High",
+  "confidence": "High",
+  "description": "The administrative interface is configured to display user passwords in plain text within the list view, potentially exposing sensitive credentials to unauthorized administrators.",
+  "vulnerable_snippet": "list_display = ['username', 'password']"
+}]}

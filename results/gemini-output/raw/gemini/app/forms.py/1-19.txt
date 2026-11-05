@@ -1,1 +1,15 @@
-{"findings": []}
+{
+  "findings": [
+    {
+      "start_line": 9,
+      "end_line": 12,
+      "function": "UserForm",
+      "cwe_id": "CWE-259",
+      "cwe_name": "Use of Hard-coded Password",
+      "severity": "High",
+      "confidence": "Medium",
+      "description": "The ModelForm includes the password field directly from the User model, which typically results in the storage or handling of plain-text passwords or vulnerable exposure of credential fields.",
+      "vulnerable_snippet": "fields = [\n            'username','password','blab_name','real_name'\n        ]"
+    }
+  ]
+}
