@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 
-MODEL = "gemini-3.5-flash-lite"
+MODEL = "gemma-4-31b-it"
 KEY_NAME = "GEMINI_API_KEY"
 CHUNK_LINES = 400
 SKIP_DIRS = {".git", "node_modules", "venv", ".venv", "__pycache__", "target",
