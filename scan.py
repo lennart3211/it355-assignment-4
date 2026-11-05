@@ -10,7 +10,7 @@ from pathlib import Path
 
 # Check Anthropic's docs for current model names and swap as needed.
 MODELS = {
-    "claude": "claude-sonnet-5-5",
+    "groq": "openai/gpt-oss-120b",
 }
 
 CHUNK_LINES = 400          # big files are split so line numbers stay accurate
@@ -52,24 +52,34 @@ def build_user_prompt(rel_path: str, numbered_code: str) -> str:
     return f"File: {rel_path}\n\n```\n{numbered_code}\n```"
 
 
-# ---------------------------------------------------------------------------
-# Claude wrapper - takes (system, user, model) and returns raw text
-# ---------------------------------------------------------------------------
+
 @lru_cache(maxsize=None)
 def _client(provider: str):
-    import anthropic
-    return anthropic.Anthropic()       # reads ANTHROPIC_API_KEY
+    from groq import Groq
+    return Groq()  # Reads GROQ_API_KEY
 
 
-def call_claude(system, user, model):
-    resp = _client("claude").messages.create(
-        model=model, max_tokens=4096, system=system,
-        messages=[{"role": "user", "content": user}],
+def call_groq(system, user, model):
+    resp = _client("groq").chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        max_completion_tokens=8192,
+        reasoning_effort="low",
+        response_format={"type": "json_object"},
     )
-    return "".join(b.text for b in resp.content if b.type == "text")
+
+    if resp.choices[0].finish_reason == "length":
+        raise ValueError("Groq response was cut off.")
+
+    return resp.choices[0].message.content or ""
 
 
-CALLERS = {"claude": call_claude}
+CALLERS = {
+    "groq": call_groq,
+}
 
 
 def call_with_retry(provider, system, user, retries=4):

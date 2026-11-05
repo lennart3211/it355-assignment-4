@@ -1,0 +1,89 @@
+model,file,start_line,end_line,function,cwe_id,cwe_name,severity,confidence,description,vulnerable_snippet
+groq,app/admin.py,7,7,UserAdmin,CWE-522,Insufficiently Protected Credentials,High,High,"The admin list_display includes the 'password' field, exposing stored password hashes to any admin user, leading to credential disclosure.","    list_display = ['username', 'password']"
+groq,app/commands/IgnoreCommand.py,19,23,execute,CWE-89,SQL Injection,High,High,"User-controlled blabberUsername and username are interpolated directly into SQL strings via % formatting and concatenation, allowing injection attacks that could modify or delete data.","sqlQuery = ""DELETE FROM listeners WHERE blabber='%s' AND listener='%s';""
+self.cursor.execute(sqlQuery % (blabberUsername, self.username))
+
+sqlQuery = ""SELECT blab_name FROM users WHERE username = '"" + blabberUsername + ""'""
+self.cursor.execute(sqlQuery)
+
+sqlQuery = ""INSERT INTO users_history (blabber, event) VALUES (\"""" + self.username + ""\"", \"""" + event + ""\"")"""
+groq,app/commands/ListenCommand.py,22,22,execute,CWE-89,SQL Injection,High,High,"User-controlled blabberUsername and username are interpolated into SQL query via string formatting, allowing injection.","self.cursor.execute(sqlQuery % (blabberUsername, self.username))"
+groq,app/commands/ListenCommand.py,24,27,execute,CWE-89,SQL Injection,High,High,"blabberUsername is concatenated directly into SELECT statement, enabling injection.","sqlQuery = ""SELECT blab_name FROM users WHERE username = '"" + blabberUsername + ""'""
+self.logger.info(sqlQuery)
+self.cursor.execute(sqlQuery)"
+groq,app/commands/ListenCommand.py,30,32,execute,CWE-89,SQL Injection,High,High,"Self.username and event are concatenated into INSERT statement without sanitization, permitting injection.","sqlQuery = ""INSERT INTO users_history (blabber, event) VALUES (\"""" + self.username + ""\"", \"""" + event + ""\"")""
+self.logger.info(sqlQuery)
+self.cursor.execute(sqlQuery)"
+groq,app/migrations/0001_initial.py,66,68,,CWE-256,Plaintext Storage of Sensitive Data,High,High,"User model stores passwords and password hints in CharField without hashing or encryption, exposing credentials if database is compromised.","('username', models.CharField(max_length=100, primary_key=True, serialize=False)),
+('password', models.CharField(max_length=100, null=True)),
+('password_hint', models.CharField(max_length=100, null=True))"
+groq,app/models.py,25,30,create,CWE-327,Use of Broken or Risky Cryptographic Algorithm,High,High,"The create function hashes the user password using MD5, a broken cryptographic hash, and stores it directly without a salt, leading to compromised password storage.","    29|     return User(userName, hashlib.md5(password.encode('utf-8')).hexdigest(), userName, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)"
+groq,app/views/blabController.py,50,52,feed,CWE-89,SQL Injection,High,High,"User-supplied username is interpolated into SQL query via string formatting (sqlBlabsForMe.format then % operator) without sanitization, allowing injection.","blabsForMe = sqlBlabsForMe.format(10, 0)
+cursor.execute(blabsForMe % (username,))"
+groq,app/views/blabController.py,75,76,feed,CWE-89,SQL Injection,High,High,"Username is directly inserted into sqlBlabsByMe using % formatting, enabling injection.","cursor.execute(sqlBlabsByMe % (username,))"
+groq,app/views/blabController.py,119,121,feed,CWE-89,SQL Injection,High,High,"POST parameter 'blab' and session username are concatenated into INSERT statement via % formatting, allowing injection of arbitrary SQL.","addBlabSql = ""INSERT INTO blabs (blabber, content, timestamp) values ('%s', '%s', datetime('now'));""
+cursor.execute(addBlabSql % (username, blab))"
+groq,app/views/blabController.py,200,203,blab,CWE-89,SQL Injection,High,High,"blabid from GET parameters is interpolated into SELECT query via % formatting, permitting injection.","cursor.execute(blabDetailsSql % (blabid,))
+blabDetailsResults = cursor.fetchone()"
+groq,app/views/blabController.py,210,212,blab,CWE-89,SQL Injection,High,High,"blabid from GET is used in comment query without sanitization, enabling injection.","cursor.execute(blabCommentsSql % (blabid,))
+blabCommentsResults = cursor.fetchall()"
+groq,app/views/blabController.py,256,258,blab,CWE-89,SQL Injection,High,High,"User-supplied comment, blabid, and username are directly formatted into INSERT statement, allowing injection.","cursor.execute(addCommentSql % (blabid, username, comment, moment.now().format(""YYYY-MM-DD hh:mm:ss"")))"
+groq,app/views/blabController.py,298,301,blabbers,CWE-89,SQL Injection,High,High,"Username from session is interpolated into complex SELECT query via % formatting, permitting injection.","logger.info(blabbersSql)
+cursor.execute(blabbersSql % (username, username))
+blabbersResults = cursor.fetchall()"
+groq,app/views/blabController.py,347,350,blabbers,CWE-94,Improper Control of Generation of Code ('Code Injection'),Critical,High,"Command parameter from POST is used to construct class name and eval'ed, allowing an attacker to execute arbitrary code.","module = command.capitalize()[:-1] + ""Command""
+cmdClass = eval(module)
+cmdObj = cmdClass(cursor, username)
+cmdObj.execute(blabberUsername)"
+groq,app/views/blabController.py,272,276,blabbers,CWE-352,Cross-Site Request Forgery (CSRF),Medium,Medium,"The view is decorated with @csrf_exempt, disabling CSRF protection for state-changing POST requests, enabling CSRF attacks.","@csrf_exempt
+def blabbers(request):
+    if request.method == ""GET"":
+        sort = request.GET.get('sort')"
+groq,app/views/homeController.py,13,16,home,CWE-918,Server Side Request Forgery (SSRF),High,High,"The code builds a URL using the untrusted HTTP_HOST header and SERVER_PORT, then performs a server-side request with urllib, allowing an attacker to cause the server to make arbitrary HTTP requests.","host_ip = request.META['HTTP_HOST'].split(':')[0]
+redir = urllib.request.Request('http://' + host_ip + ':' + request.META['SERVER_PORT'] + '/feed')
+urllib.request.urlopen(redir, timeout=5)"
+groq,app/views/resetController.py,63,66,reset,CWE-295,Improper Certificate Validation,High,High,"disable_ssl_certificate_validation=True disables TLS certificate verification, allowing man‑in‑the‑middle attacks when making HTTP requests.","63|         h = httplib2.Http("".cache"", disable_ssl_certificate_validation=True) #CWE-295"
+groq,app/views/resetController.py,64,64,reset,CWE-798,Use of Hard-coded Credentials,Medium,High,"Hard‑coded username and password are added to the HTTP client, exposing credentials in source code.","64|         h.add_credentials('thiswaskevinsidea','hardcode') #CWE-798"
+groq,app/views/toolsController.py,66,69,fortune,CWE-78,OS Command Injection,High,High,"User-controlled 'file' parameter is passed to os.system in a formatted string without validation, allowing execution of arbitrary OS commands.","    else:
+        os.system(f'cat {file}')"
+groq,app/views/userController.py,102,106,login,CWE-89,Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection'),High,High,"User-supplied username and password are concatenated into an SQL query without parameterization, allowing SQL injection.","                sqlQuery = ""select username, password, password_hint, created_at, last_login, \n                            real_name, blab_name from users where username='"" + username + ""' \n                            and password='"" + hashlib.md5(password.encode('utf-8')).hexdigest() + ""';"""
+groq,app/views/userController.py,184,186,showPasswordHint,CWE-89,Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection'),High,High,"The username parameter from GET is directly concatenated into an SQL query, enabling SQL injection.","            sql = ""SELECT password_hint FROM users WHERE username = '"" + username + ""'""
+            logger.info(sql)
+            cursor.execute(sql)"
+groq,app/views/userController.py,225,227,showTotp,CWE-89,Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection'),High,High,"The username from session is concatenated into an SQL query without sanitization, permitting SQL injection.","            sql = ""SELECT totp_secret FROM users WHERE username = '"" + username + ""'""
+            logger.info(sql)
+            cursor.execute(sql)"
+groq,app/views/userController.py,259,261,processTotp,CWE-89,Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection'),High,High,"The username from session is concatenated into an SQL query, leading to possible SQL injection.","            sql = ""SELECT totp_secret FROM users WHERE username = '"" + username + ""'""
+            logger.info(sql)
+            cursor.execute(sql)"
+groq,app/views/userController.py,341,342,processRegister,CWE-89,Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection'),High,High,"The username from POST is directly interpolated into an SQL statement, allowing SQL injection.","            sqlQuery = ""SELECT username FROM users WHERE username = '"" + username + ""'""
+            cursor.execute(sqlQuery)"
+groq,app/views/userController.py,68,70,login,CWE-502,Deserialization of Untrusted Data,Critical,High,"A cookie value is base64-decoded and unpickled without validation, leading to insecure deserialization attacks.","            decoded = base64.b64decode(userDetailsCookie)
+            unencodedUserDetails = pickle.loads(decoded)"
+groq,app/views/userController.py,42,45,login,CWE-601,URL Redirection to Untrusted Site ('Open Redirect'),Medium,High,"The 'target' parameter from the request is used directly in redirect() without validation, enabling open redirect attacks.","            if (target != None) and (target) and (not target == ""null""):
+                return redirect(target)
+            else:
+                return redirect('feed')"
+groq,app/views/userController.py,91,96,login,CWE-601,URL Redirection to Untrusted Site ('Open Redirect'),Medium,High,"The 'target' POST parameter is used directly in redirect(), allowing open redirect.","        if (target != None) and (target) and (not target == ""null""):
+            nextView = target
+            response = redirect(nextView)
+        else:
+            nextView = 'feed'
+            response = redirect(nextView)"
+groq,app/views/userController.py,129,130,login,CWE-326,Inadequate Encryption Strength,High,Medium,"A newly generated RSA private key is stored directly in a cookie, exposing sensitive cryptographic material.","                response.set_cookie('password', private_key)"
+groq,app/views/userController.py,125,125,login,CWE-117,Improper Output Neutralization for Logs ('Log Injection'),Low,Medium,"User-controlled data is concatenated into log messages without sanitization, allowing log injection.","                logger.info(""User found"" + str(row))"
+groq,app/views/userController.py,125,125,login,CWE-327,Use of Weak Cryptographic Algorithm,Medium,Medium,"MD5 is used to hash passwords, which is a weak, broken algorithm.","                and password='"" + hashlib.md5(password.encode('utf-8')).hexdigest() + ""';"
+groq,app/views/userController.py,410,418,register (anonymous),CWE-89,SQL Injection,Critical,High,"User-supplied values (username, password, realName, blabName) are concatenated into an SQL INSERT string and executed without parameterization, allowing injection.","query += ""('"" + username + ""',..."""
+groq,app/views/userController.py,494,495,showProfile,CWE-89,SQL Injection,High,High,"The username from the session is interpolated into a SQL query using the % operator, enabling injection if the session value is tampered with.",cursor.execute(sqlMyHecklers % username)
+groq,app/views/userController.py,511,513,showProfile,CWE-89,SQL Injection,High,High,"The username is concatenated directly into a SELECT statement for the audit trail, creating an injection vector.","sqlMyEvents = ""select event from users_history where blabber=\"""" + username + ""\"" ORDER BY eventid DESC; ""
+cursor.execute(sqlMyEvents)"
+groq,app/views/userController.py,521,523,showProfile,CWE-89,SQL Injection,High,High,"User-controlled username is concatenated into a SELECT query without escaping, leading to injection.","sql = ""SELECT username, real_name, blab_name, totp_secret FROM users WHERE username = '"" + username + ""'"""
+groq,app/views/userController.py,734,734,usernameExists,CWE-89,SQL Injection,Medium,High,"Username is interpolated into a SELECT statement using % formatting, allowing injection if the input is not sanitized.","cursor.execute(sqlStatement % (username,))"
+groq,app/views/userController.py,774,775,updateUsername,CWE-89,SQL Injection,Critical,High,"Multiple update statements concatenate newUsername and oldUsername via % formatting, enabling injection across several tables.","cursor.execute(query % (newUsername,oldUsername))"
+groq,app/views/userController.py,632,636,processProfile,CWE-502,Insecure Deserialization,Critical,High,"User-controlled cookie is base64 decoded and then deserialized with pickle, allowing execution of arbitrary code if attacker controls the cookie.","decoded = base64.b64decode(userDetailsCookie)
+unencodedUserDetails = pickle.loads(decoded)"
+groq,app/views/userController.py,559,560,processProfile,CWE-79,Cross-site Scripting (XSS),Medium,High,"User-supplied values are embedded in a script tag returned in JSON, leading to reflected XSS when rendered in the browser.","msg = f""<script>alert('Successfully changed values!\\nusername: {username.lower()}\\nReal Name: {realName}\\nBlab Name: {blabName}');</script>"""
+groq,app/views/userController.py,568,569,processProfile,CWE-79,Cross-site Scripting (XSS),Medium,Medium,"Error message includes a script tag that could be reflected to the client, enabling XSS.","response = JsonResponse({'message':""<script>alert('Error - please login');</script>""},status=403)"
+groq,verademo-python/settings.py,27,27,,CWE-215,Information Exposure Through Debug Information,High,High,"DEBUG is set to True, exposing detailed error pages and stack traces to attackers, which can reveal sensitive information.",   27| DEBUG = True
+groq,verademo-python/settings.py,30,30,,CWE-20,Improper Input Validation,High,High,"ALLOWED_HOSTS is set to a wildcard, allowing HTTP Host header attacks and facilitating host header poisoning.",   30| ALLOWED_HOSTS = ['*']
+groq,verademo-python/settings.py,49,49,,CWE-352,Cross-Site Request Forgery (CSRF),Medium,High,"The CSRF protection middleware is commented out, leaving the application vulnerable to CSRF attacks.",   49| #'django.middleware.csrf.CsrfViewMiddleware'
