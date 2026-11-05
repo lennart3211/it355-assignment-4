@@ -1,0 +1,11 @@
+{"findings": [{
+  "start_line": 22,
+  "end_line": 22,
+  "function": "execute",
+  "cwe_id": "CWE-89",
+  "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command",
+  "severity": "Critical",
+  "confidence": "High",
+  "description": "User-supplied input 'blabberUsername' is directly formatted into an SQL query string and executed, allowing potential SQL injection attacks.",
+  "vulnerable_snippet": "            self.cursor.execute(sqlQuery % (blabberUsername, self.username))"
+}]}

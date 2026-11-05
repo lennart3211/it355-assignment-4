@@ -1,0 +1,15 @@
+{
+  "findings": [
+    {
+      "start_line": 29,
+      "end_line": 29,
+      "function": "create",
+      "cwe_id": "CWE-327",
+      "cwe_name": "Use of a Broken or Risky Cryptographic Algorithm",
+      "severity": "Medium",
+      "confidence": "High",
+      "description": "The application uses MD5 for hashing passwords, which is a cryptographically broken and weak hashing algorithm.",
+      "vulnerable_snippet": "    return User(userName, hashlib.md5(password.encode('utf-8')).hexdigest(), userName, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)"
+    }
+  ]
+}
