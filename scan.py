@@ -1,25 +1,32 @@
 # python scan.py verademo-python --ext .py --out results
+"""Assignment 4 Gemini-only static-analysis runner. Keys stay outside source control.
+
+For Caleb's Gemini branch. Run --help for options.
+This performs detection only; patch generation and human review are separate.
+"""
 
 import argparse
 import csv
+import getpass
+import hashlib
+import importlib
 import json
+import os
 import re
+import sys
 import time
+import warnings
+from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 
-# Check Anthropic's docs for current model names and swap as needed.
-MODELS = {
-    "claude": "claude-sonnet-5-5",
-}
-
-CHUNK_LINES = 400          # big files are split so line numbers stay accurate
+MODEL = "gemini-3.5-flash-lite"
+KEY_NAME = "GEMINI_API_KEY"
+CHUNK_LINES = 400
 SKIP_DIRS = {".git", "node_modules", "venv", ".venv", "__pycache__", "target",
              "build", "dist", "static", ".idea", ".mvn"}
 
-# ---------------------------------------------------------------------------
-# Prompt: the key to consistent, machine-readable output across all 3 models
-# ---------------------------------------------------------------------------
+# Kept identical to the group's supplied prompt for comparable experiments.
 SYSTEM_PROMPT = """You are an application security auditor performing static analysis (SAST).
 You will be given part or all of ONE source file. Every line is prefixed with its
 line number, like "  42| code".
@@ -47,148 +54,265 @@ Respond with ONLY a JSON object - no markdown fences, no prose - matching exactl
   "vulnerable_snippet": "<the exact vulnerable line(s)>"
 }]}"""
 
+FINDING_PROPERTIES = {
+    "start_line": {"type": "integer"},
+    "end_line": {"type": "integer"},
+    "function": {"type": "string"},
+    "cwe_id": {"type": "string"},
+    "cwe_name": {"type": "string"},
+    "severity": {"type": "string", "enum": ["Critical", "High", "Medium", "Low"]},
+    "confidence": {"type": "string", "enum": ["High", "Medium", "Low"]},
+    "description": {"type": "string"},
+    "vulnerable_snippet": {"type": "string"},
+}
+FINDINGS_SCHEMA = {
+    "type": "object",
+    "properties": {"findings": {"type": "array", "items": {
+        "type": "object", "properties": FINDING_PROPERTIES,
+        "required": list(FINDING_PROPERTIES),
+    }}},
+    "required": ["findings"],
+}
+CWE_RE = re.compile(r"^CWE-[1-9]\d*$")
 
-def build_user_prompt(rel_path: str, numbered_code: str) -> str:
+
+def build_user_prompt(rel_path, numbered_code):
     return f"File: {rel_path}\n\n```\n{numbered_code}\n```"
 
 
-# ---------------------------------------------------------------------------
-# Claude wrapper - takes (system, user, model) and returns raw text
-# ---------------------------------------------------------------------------
-@lru_cache(maxsize=None)
-def _client(provider: str):
-    import anthropic
-    return anthropic.Anthropic()       # reads ANTHROPIC_API_KEY
+def prepare_credentials(prompt_keys=False):
+    """Read one Gemini key or request it privately; never save it to disk."""
+    if os.environ.get(KEY_NAME, "").strip():
+        return
+    if not prompt_keys:
+        raise ValueError(f"Missing {KEY_NAME}. Configure it privately or use --prompt-keys.")
+    if not sys.stdin.isatty():
+        raise ValueError("Hidden key entry requires an interactive terminal.")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", getpass.GetPassWarning)
+        try:
+            key = getpass.getpass(f"{KEY_NAME} (hidden; not saved): ").strip()
+        except (getpass.GetPassWarning, EOFError):
+            raise ValueError("Secure terminal input unavailable; use environment variables.") from None
+    if not key:
+        raise ValueError(f"No value supplied for {KEY_NAME}.")
+    os.environ[KEY_NAME] = key  # Current process only.
 
 
-def call_claude(system, user, model):
-    resp = _client("claude").messages.create(
-        model=model, max_tokens=4096, system=system,
-        messages=[{"role": "user", "content": user}],
+@lru_cache(maxsize=1)
+def _client():
+    from google import genai
+    return genai.Client(
+        api_key=os.environ[KEY_NAME],
+        vertexai=False,
+        http_options={"timeout": 60000},
     )
-    return "".join(b.text for b in resp.content if b.type == "text")
 
 
-CALLERS = {"claude": call_claude}
+def call_gemini(system, user, model):
+    response = _client().models.generate_content(
+        model=model,
+        contents=user,
+        config={
+            "system_instruction": system,
+            "response_mime_type": "application/json",
+            "response_json_schema": FINDINGS_SCHEMA,
+            "max_output_tokens": 8192,
+        },
+    )
+    return response.text or ""
 
 
-def call_with_retry(provider, system, user, retries=4):
+def error_status(error):
+    value = getattr(error, "status_code", None) or getattr(error, "code", None)
+    return value if isinstance(value, int) else None
+
+
+def call_with_retry(system, user, model, retries=4):
     for attempt in range(retries):
         try:
-            return CALLERS[provider](system, user, MODELS[provider])
-        except (TypeError, ImportError):                # code/setup bugs: fail fast
+            return call_gemini(system, user, model)
+        except (TypeError, ImportError, KeyError):
             raise
-        except Exception as e:                          # rate limits, timeouts
-            wait = 2 ** attempt * 5
-            print(f"    [{provider}] error: {e!s:.120} - retrying in {wait}s")
-            time.sleep(wait)
+        except Exception as error:
+            status = error_status(error)
+            retryable = (status in {408, 409, 429} or
+                         (status is not None and 500 <= status <= 599) or
+                         type(error).__name__ in {
+                             "TimeoutError", "TimeoutException", "ReadTimeout", "ConnectTimeout",
+                             "APITimeoutError", "APIConnectionError", "ConnectError",
+                         })
+            # Do not print exception text: SDK errors can contain request details.
+            print(f"    [gemini] request failed (HTTP {status or 'unknown'}).")
+            if not retryable or attempt + 1 == retries:
+                return None
+            delay = 5 * 2 ** attempt
+            print(f"    Retrying in {delay}s ({attempt + 2}/{retries}).")
+            time.sleep(delay)
     return None
 
 
-# ---------------------------------------------------------------------------
-# Parsing + validation (models still occasionally wrap JSON in fences)
-# ---------------------------------------------------------------------------
-CWE_RE = re.compile(r"^CWE-\d+$")
-
-
-def parse_findings(raw: str):
-    if not raw:
+def parse_findings(raw):
+    if not raw or not isinstance(raw, str):
         return None
-    text = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.M).strip()
-    start, end = text.find("{"), text.rfind("}")
-    if start == -1 or end == -1:
-        return None
+    text = raw.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.I)
+        text = re.sub(r"\s*```$", "", text)
     try:
-        data = json.loads(text[start:end + 1])
+        data = json.loads(text)
     except json.JSONDecodeError:
         return None
-    return data.get("findings", []) if isinstance(data, dict) else None
+    # Missing findings is not equivalent to an explicit, successful empty list.
+    if not isinstance(data, dict) or not isinstance(data.get("findings"), list):
+        return None
+    return data["findings"]
 
 
 def validate(finding, rel_path, lo, hi):
-    """Drop malformed findings and anything pointing outside the chunk."""
-    try:
-        s, e = int(finding["start_line"]), int(finding.get("end_line", finding["start_line"]))
-    except (KeyError, TypeError, ValueError):
+    """Validate format and location, not the truth of the vulnerability."""
+    if not isinstance(finding, dict) or not FINDING_PROPERTIES.keys() <= finding.keys():
         return None
-    cwe = str(finding.get("cwe_id", "")).strip().upper()
-    if not CWE_RE.match(cwe) or not (lo <= s <= hi):
+    start, end = finding["start_line"], finding["end_line"]
+    if type(start) is not int or type(end) is not int or not (lo <= start <= end <= hi):
         return None
-    finding.update(file=rel_path, start_line=s, end_line=max(s, min(e, hi)), cwe_id=cwe)
-    return finding
+    strings = set(FINDING_PROPERTIES) - {"start_line", "end_line"}
+    if any(not isinstance(finding[key], str) for key in strings):
+        return None
+    cwe = finding["cwe_id"].strip().upper()
+    if not CWE_RE.fullmatch(cwe):
+        return None
+    if not all(finding[key].strip() for key in ("cwe_name", "description", "vulnerable_snippet")):
+        return None
+    if finding["severity"] not in FINDING_PROPERTIES["severity"]["enum"]:
+        return None
+    if finding["confidence"] not in FINDING_PROPERTIES["confidence"]["enum"]:
+        return None
+    return {**{key: finding[key] for key in FINDING_PROPERTIES}, "file": rel_path, "cwe_id": cwe}
 
 
-# ---------------------------------------------------------------------------
-# Repo walking
-# ---------------------------------------------------------------------------
-def iter_source_files(root: Path, exts):
-    for p in sorted(root.rglob("*")):
-        if p.is_file() and p.suffix in exts and not (SKIP_DIRS & set(p.parts)):
-            yield p
+def iter_source_files(root, exts):
+    for path in sorted(root.rglob("*")):
+        relative = path.relative_to(root)
+        if SKIP_DIRS & set(relative.parts):
+            continue
+        if path.is_file() and path.suffix in exts and path.resolve().is_relative_to(root):
+            yield path
 
 
 def chunks(lines):
-    """Yield (first_line_no, last_line_no, numbered_text) windows."""
-    for i in range(0, len(lines), CHUNK_LINES):
-        part = lines[i:i + CHUNK_LINES]
-        numbered = "\n".join(f"{i + n + 1:5d}| {l}" for n, l in enumerate(part))
-        yield i + 1, i + len(part), numbered
+    for index in range(0, len(lines), CHUNK_LINES):
+        part = lines[index:index + CHUNK_LINES]
+        text = "\n".join(f"{index + n + 1:5d}| {line}" for n, line in enumerate(part))
+        yield index + 1, index + len(part), text
 
 
-# ---------------------------------------------------------------------------
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("repo")
-    ap.add_argument("--ext", nargs="+", default=[".py"])
-    ap.add_argument("--models", nargs="+", default=list(MODELS), choices=list(MODELS))
-    ap.add_argument("--out", default="results")
-    ap.add_argument("--max-files", type=int, default=0, help="0 = no limit")
-    args = ap.parse_args()
+def write_json(path, data):
+    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
-    root, out = Path(args.repo), Path(args.out)
-    out.mkdir(parents=True, exist_ok=True)
-    files = list(iter_source_files(root, set(args.ext)))
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("repo", help="Repository directory or one Python source file")
+    parser.add_argument("--ext", nargs="+", default=[".py"])
+    parser.add_argument("--model", default=os.environ.get("GEMINI_MODEL", MODEL))
+    parser.add_argument("--out", default="results", help="New or empty output directory")
+    parser.add_argument("--max-files", type=int, default=0, help="0 = no limit")
+    parser.add_argument("--prompt-keys", action="store_true", help="Prompt privately for the Gemini key")
+    parser.add_argument("--dry-run", action="store_true", help="List inputs without a key or API calls")
+    args = parser.parse_args(argv)
+    if args.max_files < 0:
+        parser.error("--max-files must be nonnegative.")
+    source = Path(args.repo).resolve()
+    if not source.exists():
+        parser.error("The source path does not exist.")
+    root = source if source.is_dir() else source.parent
+    files = list(iter_source_files(root, set(args.ext))) if source.is_dir() else [source]
     if args.max_files:
         files = files[:args.max_files]
-    print(f"Scanning {len(files)} files with {args.models}")
-
-    all_rows = []
-    for provider in args.models:
-        results = []
+    if not files:
+        parser.error("No matching source files found.")
+    print(f"Scanning {len(files)} files with Gemini ({args.model})")
+    if args.dry_run:
         for path in files:
-            rel = path.relative_to(root).as_posix()
-            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
-            if not lines:
-                continue
+            print(f"  {path.relative_to(root).as_posix()}")
+        return 0
+    out = Path(args.out).resolve()
+    if out.is_relative_to(root):
+        parser.error("Use an output directory outside the scanned source tree.")
+    if out.exists() and (not out.is_dir() or any(out.iterdir())):
+        parser.error("Output must be new or empty. Choose a fresh --out directory.")
+    try:
+        importlib.import_module("google.genai")
+    except ImportError:
+        parser.error("Install the Gemini SDK: python -m pip install google-genai")
+    try:
+        prepare_credentials(args.prompt_keys)
+    except ValueError as error:
+        parser.error(str(error))
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "system_prompt.txt").write_text(SYSTEM_PROMPT, encoding="utf-8")
+    manifest = {
+        "started_at_utc": datetime.now(timezone.utc).isoformat(),
+        "provider": "gemini", "model_id": args.model,
+        "chunk_lines": CHUNK_LINES, "files": [], "calls": [],
+        "note": "Findings are model claims pending human verification.",
+    }
+    inputs = []
+    for path in files:
+        relative = path.relative_to(root).as_posix()
+        data = path.read_bytes()
+        lines = data.decode("utf-8", errors="replace").splitlines()
+        manifest["files"].append({"file": relative, "sha256": hashlib.sha256(data).hexdigest(),
+                                  "line_count": len(lines)})
+        inputs.append((relative, lines))
+    results = []
+    incomplete = False
+    try:
+        for relative, lines in inputs:
             for lo, hi, numbered in chunks(lines):
-                print(f"  [{provider}] {rel}:{lo}-{hi}")
-                raw = call_with_retry(provider, SYSTEM_PROMPT, build_user_prompt(rel, numbered))
-                raw_file = out / "raw" / provider / f"{rel.replace('/', '__')}_{lo}.txt"
+                print(f"  [gemini] {relative}:{lo}-{hi}")
+                raw = call_with_retry(SYSTEM_PROMPT, build_user_prompt(relative, numbered), args.model)
+                raw_file = out / "raw" / "gemini" / relative / f"{lo}-{hi}.txt"
                 raw_file.parent.mkdir(parents=True, exist_ok=True)
                 raw_file.write_text(raw or "", encoding="utf-8")
-
                 findings = parse_findings(raw)
-                if findings is None:
-                    print(f"    !! unparseable response saved to {raw_file}")
-                    continue
-                for f in findings:
-                    v = validate(f, rel, lo, hi)
-                    if v:
-                        v["model"] = provider
-                        results.append(v)
-
-        (out / f"findings_{provider}.json").write_text(json.dumps(results, indent=2))
-        print(f"[{provider}] {len(results)} findings")
-        all_rows.extend(results)
-
-    cols = ["model", "file", "start_line", "end_line", "function", "cwe_id", "cwe_name",
-            "severity", "confidence", "description", "vulnerable_snippet"]
-    with open(out / "findings_all.csv", "w", newline="", encoding="utf-8") as fh:
-        w = csv.DictWriter(fh, fieldnames=cols, extrasaction="ignore")
-        w.writeheader()
-        w.writerows(all_rows)
-    print(f"Done -> {out}/findings_all.csv")
+                status = "ok" if findings is not None else ("api_error" if raw is None else "invalid_response")
+                accepted, rejected = [], 0
+                for finding in findings or []:
+                    row = validate(finding, relative, lo, hi)
+                    if row is None:
+                        rejected += 1
+                    else:
+                        accepted.append({**row, "model": "gemini", "model_id": args.model})
+                if rejected:
+                    status = "invalid_findings"
+                incomplete |= status != "ok"
+                results.extend(accepted)
+                write_json(out / "findings_gemini.json", results)
+                manifest["calls"].append({"file": relative, "start_line": lo, "end_line": hi,
+                    "status": status, "accepted": len(accepted), "rejected": rejected,
+                    "raw_file": raw_file.relative_to(out).as_posix()})
+                print(f"    {status}: {len(accepted)} findings, {rejected} rejected")
+                write_json(out / "run_manifest.json", manifest)
+    except KeyboardInterrupt:
+        incomplete = True
+        manifest["interrupted"] = True
+        print("Interrupted; completed evidence is retained.")
+    finally:
+        manifest["completed_at_utc"] = datetime.now(timezone.utc).isoformat()
+        manifest["complete"] = not incomplete and not sys.exc_info()[0]
+        write_json(out / "run_manifest.json", manifest)
+    write_json(out / "findings_gemini.json", results)
+    columns = ["model", "model_id", "file", "start_line", "end_line", "function", "cwe_id", "cwe_name",
+               "severity", "confidence", "description", "vulnerable_snippet"]
+    with (out / "findings_gemini.csv").open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=columns, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(results)
+    print(f"{'Incomplete' if incomplete else 'Done'} -> {out / 'findings_gemini.csv'}")
+    return 1 if incomplete else 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
