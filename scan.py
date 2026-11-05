@@ -11,6 +11,7 @@ import getpass
 import hashlib
 import importlib
 import json
+import math
 import os
 import re
 import sys
@@ -101,7 +102,8 @@ def _client():
     return genai.Client(
         api_key=os.environ[KEY_NAME],
         vertexai=False,
-        http_options={"timeout": 60000},
+        # Our retry loop handles every attempt so pacing covers all API requests.
+        http_options={"timeout": 60000, "retry_options": {"attempts": 1}},
     )
 
 
@@ -130,28 +132,98 @@ def error_status(error):
     return value if isinstance(value, int) else None
 
 
-def call_with_retry(system, user, model, retries=4):
-    for attempt in range(retries):
+class RequestPacer:
+    """Space request starts, including retries, within this scanner process."""
+
+    def __init__(self, requests_per_minute):
+        if not math.isfinite(requests_per_minute) or requests_per_minute <= 0:
+            raise ValueError("requests per minute must be a positive finite number")
+        self.interval = 60.0 / requests_per_minute
+        self.next_start = 0.0
+
+    def wait(self):
+        delay = self.next_start - time.monotonic()
+        if delay > 0:
+            time.sleep(delay)
+        self.next_start = time.monotonic() + self.interval
+
+
+def retry_details(error):
+    """Extract only safe quota fields and the longest server-requested delay."""
+    payload = getattr(error, "details", {})
+    if isinstance(payload, dict):
+        payload = payload.get("error", payload)
+        details = payload.get("details", []) if isinstance(payload, dict) else []
+    else:
+        details = payload if isinstance(payload, list) else []
+    delays, quotas = [], []
+
+    def add_delay(value):
         try:
-            return call_gemini(system, user, model)
+            seconds = float(str(value).removesuffix("s"))
+        except (TypeError, ValueError):
+            return
+        if math.isfinite(seconds) and seconds >= 0:
+            delays.append(seconds)
+
+    for item in details:
+        if not isinstance(item, dict):
+            continue
+        if str(item.get("@type", "")).endswith("RetryInfo"):
+            add_delay(item.get("retryDelay"))
+        if str(item.get("@type", "")).endswith("QuotaFailure"):
+            for violation in item.get("violations", []):
+                if not isinstance(violation, dict):
+                    continue
+                safe = {key: str(violation[key])[:200]
+                        for key in ("quotaMetric", "quotaId", "quotaValue") if key in violation}
+                if safe:
+                    quotas.append(safe)
+    # The human-readable delay can be more precise than RetryInfo (20.77s vs 20s).
+    message = str(getattr(error, "message", ""))
+    for match in re.finditer(r"retry in\s+([0-9]+(?:\.[0-9]+)?)s", message, flags=re.I):
+        add_delay(match.group(1))
+    response = getattr(error, "response", None)
+    headers = getattr(response, "headers", None)
+    if headers is not None:
+        add_delay(headers.get("Retry-After"))
+    return {"retry_after_seconds": max(delays, default=0.0), "quotas": quotas}
+
+
+def call_with_retry(system, user, model, retries=4, pacer=None, attempt_log=None):
+    for attempt in range(retries):
+        if pacer is not None:
+            pacer.wait()
+        record = {"attempt": attempt + 1, "at_utc": datetime.now(timezone.utc).isoformat()}
+        try:
+            result = call_gemini(system, user, model)
+            if attempt_log is not None:
+                attempt_log.append({**record, "status": "ok"})
+            return result
         except (TypeError, ImportError, KeyError):
             raise
         except Exception as error:
             status = error_status(error)
+            info = retry_details(error)
             retryable = (status in {408, 409, 429} or
                          (status is not None and 500 <= status <= 599) or
                          type(error).__name__ in {
                              "TimeoutError", "TimeoutException", "ReadTimeout", "ConnectTimeout",
                              "APITimeoutError", "APIConnectionError", "ConnectError",
                          })
-            print(
-                f"    [gemini] request failed "
-                f"({type(error).__name__}, HTTP {status or 'unknown'}): {error}"
-            )
+            print(f"    [gemini] request failed ({type(error).__name__}, HTTP {status or 'unknown'}).")
+            for quota in info["quotas"]:
+                print(f"    Quota: {quota.get('quotaId', quota.get('quotaMetric', 'unknown'))}; "
+                      f"limit: {quota.get('quotaValue', 'not supplied')}")
+            if attempt_log is not None:
+                attempt_log.append({**record, "status": "request_error", "http_status": status, **info})
             if not retryable or attempt + 1 == retries:
                 return None
-            delay = 5 * 2 ** attempt
-            print(f"    Retrying in {delay}s ({attempt + 2}/{retries}).")
+            server_delay = info["retry_after_seconds"]
+            delay = max(5 * 2 ** attempt, server_delay + 1 if server_delay else 0)
+            if attempt_log is not None:
+                attempt_log[-1]["wait_before_retry_seconds"] = delay
+            print(f"    Retrying in {delay:.1f}s ({attempt + 2}/{retries}).")
             time.sleep(delay)
     return None
 
@@ -227,9 +299,15 @@ def main(argv=None):
     parser.add_argument("--max-files", type=int, default=0, help="0 = no limit")
     parser.add_argument("--prompt-keys", action="store_true", help="Prompt privately for the Gemini key")
     parser.add_argument("--dry-run", action="store_true", help="List inputs without a key or API calls")
+    parser.add_argument("--requests-per-minute", type=float, default=12.0,
+                        help="Pace this process below your project quota; default 12")
     args = parser.parse_args(argv)
     if args.max_files < 0:
         parser.error("--max-files must be nonnegative.")
+    try:
+        pacer = RequestPacer(args.requests_per_minute)
+    except ValueError as error:
+        parser.error(str(error))
     source = Path(args.repo).resolve()
     if not source.exists():
         parser.error("The source path does not exist.")
@@ -263,6 +341,8 @@ def main(argv=None):
         "started_at_utc": datetime.now(timezone.utc).isoformat(),
         "provider": "gemini", "model_id": args.model,
         "chunk_lines": CHUNK_LINES, "files": [], "calls": [],
+        "requests_per_minute": args.requests_per_minute,
+        "sdk_attempts_per_request": 1,
         "note": "Findings are model claims pending human verification.",
     }
     inputs = []
@@ -279,11 +359,19 @@ def main(argv=None):
         for relative, lines in inputs:
             for lo, hi, numbered in chunks(lines):
                 print(f"  [gemini] {relative}:{lo}-{hi}")
-                raw = call_with_retry(
-                    SYSTEM_PROMPT,
-                    build_user_prompt(SYSTEM_PROMPT, relative, numbered),
-                    args.model,
-                )
+                attempts = []
+                try:
+                    raw = call_with_retry(
+                        SYSTEM_PROMPT,
+                        build_user_prompt(SYSTEM_PROMPT, relative, numbered),
+                        args.model,
+                        pacer=pacer,
+                        attempt_log=attempts,
+                    )
+                except KeyboardInterrupt:
+                    manifest["calls"].append({"file": relative, "start_line": lo, "end_line": hi,
+                        "status": "interrupted", "accepted": 0, "rejected": 0, "attempts": attempts})
+                    raise
                 raw_file = out / "raw" / "gemini" / relative / f"{lo}-{hi}.txt"
                 raw_file.parent.mkdir(parents=True, exist_ok=True)
                 raw_file.write_text(raw or "", encoding="utf-8")
@@ -303,6 +391,7 @@ def main(argv=None):
                 write_json(out / "findings_gemini.json", results)
                 manifest["calls"].append({"file": relative, "start_line": lo, "end_line": hi,
                     "status": status, "accepted": len(accepted), "rejected": rejected,
+                    "attempts": attempts,
                     "raw_file": raw_file.relative_to(out).as_posix()})
                 print(f"    {status}: {len(accepted)} findings, {rejected} rejected")
                 write_json(out / "run_manifest.json", manifest)

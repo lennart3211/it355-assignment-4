@@ -1,14 +1,25 @@
 {"findings": [
   {
-    "start_line": 63,
-    "end_line": 63,
-    "function": "reset",
-    "cwe_id": "CWE-295",
-    "cwe_name": "Improper Certificate Validation",
-    "severity": "High",
+    "start_line": 97,
+    "end_line": 103,
+    "function": "processReset",
+    "cwe_id": "CWE-89",
+    "cwe_name": "SQL Injection",
+    "severity": "Critical",
     "confidence": "High",
-    "description": "The httplib2 client is configured with disable_ssl_certificate_validation=True, which ignores SSL certificate errors and exposes the connection to man-in-the-middle attacks.",
-    "vulnerable_snippet": "h = httplib2.Http(\".cache\", disable_ssl_certificate_validation=True) #CWE-295"
+    "description": "The application uses string formatting to construct SQL queries with user-defined input from the 'users' list, which can lead to SQL injection if the list contents were influenced by external input.",
+    "vulnerable_snippet": "cursor.execute(usersStatement % (user.username, user.password, user.password_hint, user.totp_secret, user.created_at, user.last_login, user.real_name, user.blab_name))"
+  },
+  {
+    "start_line": 108,
+    "end_line": 116,
+    "function": "processReset",
+    "cwe_id": "CWE-89",
+    "cwe_name": "SQL Injection",
+    "severity": "Critical",
+    "confidence": "High",
+    "description": "The application uses string formatting to construct SQL queries for inserting listeners, creating a risk of SQL injection.",
+    "vulnerable_snippet": "cursor.execute(listenersStatement % (blabber.username, listener.username))"
   },
   {
     "start_line": 64,
@@ -18,29 +29,18 @@
     "cwe_name": "Use of Hard-coded Credentials",
     "severity": "High",
     "confidence": "High",
-    "description": "Hard-coded credentials are used for authentication in the httplib2 request configuration, which could allow unauthorized access.",
+    "description": "The application uses hard-coded credentials when configuring authentication for an HTTP client.",
     "vulnerable_snippet": "h.add_credentials('thiswaskevinsidea','hardcode') #CWE-798"
   },
   {
-    "start_line": 102,
-    "end_line": 103,
-    "function": "processReset",
-    "cwe_id": "CWE-89",
-    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
-    "severity": "Critical",
+    "start_line": 63,
+    "end_line": 63,
+    "function": "reset",
+    "cwe_id": "CWE-295",
+    "cwe_name": "Improper Certificate Validation",
+    "severity": "High",
     "confidence": "High",
-    "description": "SQL injection occurs through the manual formatting of the usersStatement string with user-controlled data fields using the '%' operator.",
-    "vulnerable_snippet": "cursor.execute(usersStatement % (user.username, user.password, user.password_hint, user.totp_secret, user.created_at,\n                                                     user.last_login, user.real_name, user.blab_name))"
-  },
-  {
-    "start_line": 116,
-    "end_line": 116,
-    "function": "processReset",
-    "cwe_id": "CWE-89",
-    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
-    "severity": "Critical",
-    "confidence": "High",
-    "description": "SQL injection occurs through the manual formatting of the listenersStatement string with user-controlled data fields using the '%' operator.",
-    "vulnerable_snippet": "cursor.execute(listenersStatement % (blabber.username, listener.username))"
+    "description": "The application disables SSL certificate validation, making it vulnerable to man-in-the-middle attacks.",
+    "vulnerable_snippet": "h = httplib2.Http(\".cache\", disable_ssl_certificate_validation=True) #CWE-295"
   }
 ]}

@@ -1,46 +1,59 @@
-{"findings": [
-  {
-    "start_line": 511,
-    "end_line": 513,
-    "function": "showProfile",
-    "cwe_id": "CWE-89",
-    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
-    "severity": "Critical",
-    "confidence": "High",
-    "description": "The query string is constructed using unsanitized user input 'username' directly, allowing for potential SQL injection.",
-    "vulnerable_snippet": "sqlMyEvents = \"select event from users_history where blabber=\\\"\" + username + \"\\\" ORDER BY eventid DESC; \"\ncursor.execute(sqlMyEvents)"
-  },
-  {
-    "start_line": 521,
-    "end_line": 523,
-    "function": "showProfile",
-    "cwe_id": "CWE-89",
-    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
-    "severity": "Critical",
-    "confidence": "High",
-    "description": "Concatenation of 'username' directly into the SQL statement in the 'showProfile' function allows for SQL injection.",
-    "vulnerable_snippet": "sql = \"SELECT username, real_name, blab_name, totp_secret FROM users WHERE username = '\" + username + \"'\"\ncursor.execute(sql)"
-  },
-  {
-    "start_line": 686,
-    "end_line": 708,
-    "function": "downloadImage",
-    "cwe_id": "CWE-22",
-    "cwe_name": "Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')",
-    "severity": "High",
-    "confidence": "High",
-    "description": "User-supplied 'image' parameter is used to construct a file path without sufficient validation, potentially allowing access to arbitrary files on the server.",
-    "vulnerable_snippet": "imageName = request.GET.get('image')\npath = f + \"/\" + imageName\nwith open(path, 'rb') as file:"
-  },
-  {
-    "start_line": 630,
-    "end_line": 633,
-    "function": "processProfile",
-    "cwe_id": "CWE-502",
-    "cwe_name": "Deserialization of Untrusted Data",
-    "severity": "Critical",
-    "confidence": "High",
-    "description": "The application deserializes user-controlled data from a cookie using 'pickle', which can lead to arbitrary code execution.",
-    "vulnerable_snippet": "decoded = base64.b64decode(userDetailsCookie)\nunencodedUserDetails = pickle.loads(decoded)"
-  }
-]}
+{
+  "findings": [
+    {
+      "start_line": 630,
+      "end_line": 633,
+      "function": "processProfile",
+      "cwe_id": "CWE-502",
+      "cwe_name": "Insecure Deserialization",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "The application deserializes user-controlled data from a cookie using pickle.pickle.loads, which allows for arbitrary code execution during deserialization.",
+      "vulnerable_snippet": "decoded = base64.b64decode(userDetailsCookie)\nunencodedUserDetails = pickle.loads(decoded)"
+    },
+    {
+      "start_line": 686,
+      "end_line": 709,
+      "function": "downloadImage",
+      "cwe_id": "CWE-22",
+      "cwe_name": "Path Traversal",
+      "severity": "High",
+      "confidence": "High",
+      "description": "The user-supplied 'image' GET parameter is used to construct a file path without sufficient validation, allowing an attacker to read arbitrary files from the server.",
+      "vulnerable_snippet": "imageName = request.GET.get('image')\npath = f + \"/\" + imageName\nwith open(path, 'rb') as file:"
+    },
+    {
+      "start_line": 410,
+      "end_line": 420,
+      "function": "",
+      "cwe_id": "CWE-89",
+      "cwe_name": "SQL Injection",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "Concatenating unsanitized user inputs directly into an SQL query string allows attackers to manipulate the query structure, potentially leading to unauthorized data access or modifications.",
+      "vulnerable_snippet": "query += (\"'\" + username + \"',\")\nquery += (\"'\" + password + \"',\")\nquery += (\"'\" + realName + \"',\")\nquery += (\"'\" + blabName + \"'\")\ncursor.execute(query)"
+    },
+    {
+      "start_line": 511,
+      "end_line": 513,
+      "function": "showProfile",
+      "cwe_id": "CWE-89",
+      "cwe_name": "SQL Injection",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "Concatenation of the 'username' variable (from the session) into an SQL query allows for potential SQL injection if the session value can be manipulated.",
+      "vulnerable_snippet": "sqlMyEvents = \"select event from users_history where blabber=\\\"\" + username + \"\\\" ORDER BY eventid DESC; \"\ncursor.execute(sqlMyEvents)"
+    },
+    {
+      "start_line": 584,
+      "end_line": 586,
+      "function": "processProfile",
+      "cwe_id": "CWE-89",
+      "cwe_name": "SQL Injection",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "Using string formatting to insert user inputs into an SQL update query allows attackers to execute arbitrary SQL commands.",
+      "vulnerable_snippet": "update = \"UPDATE users SET real_name='%s', blab_name='%s' WHERE username='%s';\"\ncursor.execute(update % (realName,blabName,sessionUsername))"
+    }
+  ]
+}

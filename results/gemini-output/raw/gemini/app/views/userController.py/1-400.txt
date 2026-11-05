@@ -4,10 +4,10 @@
     "end_line": 69,
     "function": "login",
     "cwe_id": "CWE-502",
-    "cwe_name": "Insecure Deserialization",
+    "cwe_name": "Deserialization of Untrusted Data",
     "severity": "Critical",
     "confidence": "High",
-    "description": "The application uses pickle.loads() on data retrieved from a user-controlled cookie, which can lead to arbitrary code execution.",
+    "description": "The application uses pickle.loads on data retrieved from an HTTP cookie, allowing an attacker to achieve Remote Code Execution (RCE) by providing a malicious serialized object.",
     "vulnerable_snippet": "unencodedUserDetails = pickle.loads(decoded)"
   },
   {
@@ -15,32 +15,32 @@
     "end_line": 105,
     "function": "login",
     "cwe_id": "CWE-89",
-    "cwe_name": "SQL Injection",
+    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command (SQL Injection)",
     "severity": "Critical",
     "confidence": "High",
-    "description": "User input from the POST request is directly concatenated into a SQL query string without sanitization, allowing for SQL injection.",
+    "description": "User-controlled input (username) is directly concatenated into an SQL query string, enabling potential SQL injection attacks.",
     "vulnerable_snippet": "sqlQuery = \"select username, password, password_hint, created_at, last_login, \\\n                            real_name, blab_name from users where username='\" + username + \"' \\\n                            and password='\" + hashlib.md5(password.encode('utf-8')).hexdigest() + \"';\""
   },
   {
     "start_line": 128,
-    "end_line": 129,
+    "end_line": 128,
     "function": "login",
     "cwe_id": "CWE-326",
     "cwe_name": "Inadequate Encryption Strength",
-    "severity": "Medium",
+    "severity": "High",
     "confidence": "High",
-    "description": "The application generates RSA private keys with a key size of 1024 bits, which is considered cryptographically weak and insecure for current standards.",
-    "vulnerable_snippet": "private_key = rsa.generate_private_key(\n                        public_exponent=65537, key_size=1024,)"
+    "description": "The application generates an RSA private key with a key size of 1024 bits, which is considered cryptographically insufficient.",
+    "vulnerable_snippet": "public_exponent=65537, key_size=1024,)"
   },
   {
     "start_line": 184,
     "end_line": 184,
     "function": "showPasswordHint",
     "cwe_id": "CWE-89",
-    "cwe_name": "SQL Injection",
+    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command (SQL Injection)",
     "severity": "Critical",
     "confidence": "High",
-    "description": "User input from a GET parameter is directly concatenated into a SQL query string without sanitization, allowing for SQL injection.",
+    "description": "The 'username' input is directly concatenated into a SQL statement, allowing for SQL injection in the password hint lookup.",
     "vulnerable_snippet": "sql = \"SELECT password_hint FROM users WHERE username = '\" + username + \"'\""
   },
   {
@@ -48,10 +48,32 @@
     "end_line": 225,
     "function": "showTotp",
     "cwe_id": "CWE-89",
-    "cwe_name": "SQL Injection",
+    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command (SQL Injection)",
     "severity": "Critical",
     "confidence": "High",
-    "description": "User input from the session is used in a database query without proper parameterization.",
+    "description": "The 'username' from the session is used to construct a SQL query, which may be vulnerable if the session data is modified or improperly handled.",
     "vulnerable_snippet": "sql = \"SELECT totp_secret FROM users WHERE username = '\" + username + \"'\""
+  },
+  {
+    "start_line": 259,
+    "end_line": 259,
+    "function": "processTotp",
+    "cwe_id": "CWE-89",
+    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command (SQL Injection)",
+    "severity": "Critical",
+    "confidence": "High",
+    "description": "The application uses insecure concatenation to build a SQL query using the username from the request session, leading to potential SQL injection.",
+    "vulnerable_snippet": "sql = \"SELECT totp_secret FROM users WHERE username = '\" + username + \"'\""
+  },
+  {
+    "start_line": 341,
+    "end_line": 341,
+    "function": "processRegister",
+    "cwe_id": "CWE-89",
+    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command (SQL Injection)",
+    "severity": "Critical",
+    "confidence": "High",
+    "description": "The 'username' input is directly concatenated into the SQL query during the registration process, enabling SQL injection.",
+    "vulnerable_snippet": "sqlQuery = \"SELECT username FROM users WHERE username = '\" + username + \"'\""
   }
 ]}

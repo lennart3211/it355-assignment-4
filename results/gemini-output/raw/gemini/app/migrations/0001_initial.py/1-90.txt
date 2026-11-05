@@ -1,11 +1,15 @@
-{"findings": [{
-  "start_line": 67,
-  "end_line": 67,
-  "function": "",
-  "cwe_id": "CWE-259",
-  "cwe_name": "Use of Hard-coded Password",
-  "severity": "High",
-  "confidence": "Medium",
-  "description": "The User model defines a password field, but in many Django applications, storing raw passwords without proper hashing indicates insecure authentication implementation.",
-  "vulnerable_snippet": "('password', models.CharField(max_length=100, null=True)),"
-}]}
+{
+  "findings": [
+    {
+      "start_line": 67,
+      "end_line": 67,
+      "function": "",
+      "cwe_id": "CWE-312",
+      "cwe_name": "Cleartext Storage of Sensitive Information",
+      "severity": "High",
+      "confidence": "Medium",
+      "description": "The 'password' field in the 'User' model stores passwords as plaintext strings instead of using a secure hashing algorithm.",
+      "vulnerable_snippet": "('password', models.CharField(max_length=100, null=True)),"
+    }
+  ]
+}

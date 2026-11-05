@@ -1,35 +1,37 @@
-{"findings": [
-  {
-    "start_line": 19,
-    "end_line": 22,
-    "function": "execute",
-    "cwe_id": "CWE-89",
-    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
-    "severity": "Critical",
-    "confidence": "High",
-    "description": "The application uses string formatting to construct an SQL query with user-provided input, allowing for SQL injection attacks.",
-    "vulnerable_snippet": "sqlQuery = \"DELETE FROM listeners WHERE blabber='%s' AND listener='%s';\"\n        self.logger.info(sqlQuery)\n        try :\n            self.cursor.execute(sqlQuery % (blabberUsername, self.username))"
-  },
-  {
-    "start_line": 24,
-    "end_line": 26,
-    "function": "execute",
-    "cwe_id": "CWE-89",
-    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
-    "severity": "Critical",
-    "confidence": "High",
-    "description": "The application concatenates user-provided input directly into an SQL query, allowing for SQL injection.",
-    "vulnerable_snippet": "sqlQuery = \"SELECT blab_name FROM users WHERE username = '\" + blabberUsername + \"'\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery)"
-  },
-  {
-    "start_line": 30,
-    "end_line": 32,
-    "function": "execute",
-    "cwe_id": "CWE-89",
-    "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
-    "severity": "Critical",
-    "confidence": "High",
-    "description": "The application concatenates user-provided input into an SQL query string without sanitization, leading to SQL injection.",
-    "vulnerable_snippet": "sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (\\\"\" + self.username + \"\\\", \\\"\" + event + \"\\\")\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery)"
-  }
-]}
+{
+  "findings": [
+    {
+      "start_line": 22,
+      "end_line": 22,
+      "function": "execute",
+      "cwe_id": "CWE-89",
+      "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "The application uses string formatting to construct SQL queries with user-provided input, allowing for SQL injection attacks.",
+      "vulnerable_snippet": "self.cursor.execute(sqlQuery % (blabberUsername, self.username))"
+    },
+    {
+      "start_line": 26,
+      "end_line": 26,
+      "function": "execute",
+      "cwe_id": "CWE-89",
+      "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "The application constructs an SQL query by concatenating user-provided input directly into the query string, leading to SQL injection.",
+      "vulnerable_snippet": "self.cursor.execute(sqlQuery)"
+    },
+    {
+      "start_line": 32,
+      "end_line": 32,
+      "function": "execute",
+      "cwe_id": "CWE-89",
+      "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+      "severity": "Critical",
+      "confidence": "High",
+      "description": "The application constructs an SQL query by concatenating user-provided data into a string, which is then executed as SQL, leading to SQL injection.",
+      "vulnerable_snippet": "self.cursor.execute(sqlQuery)"
+    }
+  ]
+}

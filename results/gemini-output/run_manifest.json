@@ -1,5 +1,5 @@
 {
-  "started_at_utc": "2026-11-05T18:11:53.933342+00:00",
+  "started_at_utc": "2026-11-05T19:22:31.446341+00:00",
   "provider": "gemini",
   "model_id": "gemini-3.1-flash-lite",
   "chunk_lines": 400,
@@ -148,6 +148,13 @@
       "status": "ok",
       "accepted": 1,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:22:31.460710+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/admin.py/1-13.txt"
     },
     {
@@ -157,6 +164,13 @@
       "status": "ok",
       "accepted": 0,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:22:36.465858+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/apps.py/1-6.txt"
     },
     {
@@ -166,6 +180,13 @@
       "status": "ok",
       "accepted": 0,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:22:41.466290+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/commands/BlabberCommand.py/1-3.txt"
     },
     {
@@ -175,6 +196,13 @@
       "status": "ok",
       "accepted": 3,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:22:46.471305+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/commands/IgnoreCommand.py/1-38.txt"
     },
     {
@@ -184,6 +212,13 @@
       "status": "ok",
       "accepted": 3,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:23:13.610159+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/commands/ListenCommand.py/1-38.txt"
     },
     {
@@ -191,8 +226,15 @@
       "start_line": 1,
       "end_line": 19,
       "status": "ok",
-      "accepted": 1,
+      "accepted": 0,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:23:18.615357+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/forms.py/1-19.txt"
     },
     {
@@ -202,6 +244,13 @@
       "status": "ok",
       "accepted": 0,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:23:23.619277+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/fortune/fortuneData.py/1-160.txt"
     },
     {
@@ -211,6 +260,13 @@
       "status": "ok",
       "accepted": 1,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:23:37.868241+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/migrations/0001_initial.py/1-90.txt"
     },
     {
@@ -220,6 +276,13 @@
       "status": "ok",
       "accepted": 0,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:23:42.869164+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/migrations/0002_delete_blabber.py/1-16.txt"
     },
     {
@@ -229,6 +292,13 @@
       "status": "ok",
       "accepted": 0,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:23:47.874222+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/migrations/0003_user_totp_secret.py/1-18.txt"
     },
     {
@@ -238,6 +308,13 @@
       "status": "ok",
       "accepted": 1,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:23:52.879235+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/models.py/1-199.txt"
     },
     {
@@ -247,6 +324,13 @@
       "status": "ok",
       "accepted": 0,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:23:57.881834+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/urls.py/1-23.txt"
     },
     {
@@ -256,6 +340,13 @@
       "status": "ok",
       "accepted": 9,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:24:02.886910+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/views/blabController.py/1-357.txt"
     },
     {
@@ -265,6 +356,13 @@
       "status": "ok",
       "accepted": 1,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:24:07.891650+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/views/homeController.py/1-23.txt"
     },
     {
@@ -274,6 +372,13 @@
       "status": "ok",
       "accepted": 4,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:24:12.896654+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/views/resetController.py/1-183.txt"
     },
     {
@@ -283,6 +388,13 @@
       "status": "ok",
       "accepted": 2,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:24:17.901712+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/views/toolsController.py/1-75.txt"
     },
     {
@@ -290,8 +402,15 @@
       "start_line": 1,
       "end_line": 400,
       "status": "ok",
-      "accepted": 5,
+      "accepted": 7,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:24:22.906782+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/views/userController.py/1-400.txt"
     },
     {
@@ -299,8 +418,15 @@
       "start_line": 401,
       "end_line": 800,
       "status": "ok",
-      "accepted": 4,
+      "accepted": 5,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:24:45.948946+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/views/userController.py/401-800.txt"
     },
     {
@@ -310,6 +436,13 @@
       "status": "ok",
       "accepted": 0,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:24:50.950694+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/app/views/userController.py/801-812.txt"
     },
     {
@@ -319,6 +452,13 @@
       "status": "ok",
       "accepted": 0,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:24:55.952911+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/definitions.py/1-3.txt"
     },
     {
@@ -328,6 +468,22 @@
       "status": "ok",
       "accepted": 0,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:25:00.954917+00:00",
+          "status": "request_error",
+          "http_status": 504,
+          "retry_after_seconds": 0.0,
+          "quotas": [],
+          "wait_before_retry_seconds": 5
+        },
+        {
+          "attempt": 2,
+          "at_utc": "2026-11-05T19:26:05.412267+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/manage.py/1-28.txt"
     },
     {
@@ -337,6 +493,13 @@
       "status": "ok",
       "accepted": 0,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:26:10.417390+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/verademo-python/asgi.py/1-16.txt"
     },
     {
@@ -346,6 +509,13 @@
       "status": "ok",
       "accepted": 4,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:26:15.422414+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/verademo-python/settings.py/1-159.txt"
     },
     {
@@ -355,6 +525,13 @@
       "status": "ok",
       "accepted": 0,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:26:20.425173+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/verademo-python/urls.py/1-23.txt"
     },
     {
@@ -364,10 +541,19 @@
       "status": "ok",
       "accepted": 0,
       "rejected": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-05T19:26:25.430196+00:00",
+          "status": "ok"
+        }
+      ],
       "raw_file": "raw/gemini/verademo-python/wsgi.py/1-16.txt"
     }
   ],
+  "requests_per_minute": 12.0,
+  "sdk_attempts_per_request": 1,
   "note": "Findings are model claims pending human verification.",
-  "completed_at_utc": "2026-11-05T18:13:45.491272+00:00",
+  "completed_at_utc": "2026-11-05T19:26:25.768791+00:00",
   "complete": true
 }

@@ -1,11 +1,15 @@
-{"findings": [{
-  "start_line": 13,
-  "end_line": 16,
-  "function": "home",
-  "cwe_id": "CWE-918",
-  "cwe_name": "Server-Side Request Forgery (SSRF)",
-  "severity": "High",
-  "confidence": "High",
-  "description": "The application constructs a URL using user-controlled HTTP_HOST header data and makes a request via urllib.request.urlopen, allowing for potential SSRF attacks.",
-  "vulnerable_snippet": "host_ip = request.META['HTTP_HOST'].split(':')[0]\nredir = urllib.request.Request('http://' + host_ip + ':' + request.META['SERVER_PORT'] + '/feed')\nurllib.request.urlopen(redir, timeout=5)"
-}]}
+{
+  "findings": [
+    {
+      "start_line": 13,
+      "end_line": 16,
+      "function": "home",
+      "cwe_id": "CWE-918",
+      "cwe_name": "Server-Side Request Forgery (SSRF)",
+      "severity": "High",
+      "confidence": "High",
+      "description": "The application uses user-supplied HTTP_HOST header to construct a URL and performs a request to it, allowing for potential SSRF attacks.",
+      "vulnerable_snippet": "host_ip = request.META['HTTP_HOST'].split(':')[0]\n            print(\"da\")\n            redir = urllib.request.Request('http://' + host_ip + ':' + request.META['SERVER_PORT'] + '/feed')\n            urllib.request.urlopen(redir, timeout=5)"
+    }
+  ]
+}

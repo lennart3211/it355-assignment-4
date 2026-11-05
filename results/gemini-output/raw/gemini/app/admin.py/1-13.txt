@@ -6,6 +6,6 @@
   "cwe_name": "Plaintext Storage of a Password",
   "severity": "High",
   "confidence": "High",
-  "description": "The administrative interface is configured to display user passwords in plain text within the list view, potentially exposing sensitive credentials to unauthorized administrators.",
+  "description": "The administrative interface exposes user passwords in plaintext via the list_display attribute.",
   "vulnerable_snippet": "list_display = ['username', 'password']"
 }]}
