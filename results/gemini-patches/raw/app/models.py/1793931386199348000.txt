@@ -1,0 +1,18 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0009"],
+  "edits": [
+    {
+      "start_line": 2,
+      "end_line": 2,
+      "replacement": "from django.contrib.auth.hashers import make_password"
+    },
+    {
+      "start_line": 26,
+      "end_line": 29,
+      "replacement": "    password = userName\n    dateCreated = moment.now().format(\"YYYY-MM-DD hh:mm:ss\")\n    lastLogin = None\n    return User(userName, make_password(password), userName, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)"
+    }
+  ],
+  "explanation": "Replaced the insecure MD5 hashing with Django's built-in `make_password` utility, which securely handles salt generation and hashing using industry-standard algorithms (PBKDF2 by default). This addresses the weak cryptographic algorithm finding.",
+  "review_notes": "The use of `make_password` assumes a standard Django environment. The password field is stored as a character string, which is sufficient for the hash output. Note that this change affects password generation for new users; authentication logic in other files (not provided here) should also be updated to use `check_password` instead of manual hashing to match this approach."
+}

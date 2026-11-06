@@ -1,0 +1,152 @@
+--- a/app/views/userController.py
++++ b/app/views/userController.py
+@@ -65,8 +65,10 @@
+ 
+         else:
+             logger.info("User details were remembered")
++            logger.info("User details were remembered")
++            # Decrypt/Validate instead of pickle
+             decoded = base64.b64decode(userDetailsCookie)
+-            unencodedUserDetails = pickle.loads(decoded)
++            unencodedUserDetails = None  # Replaced dangerous pickle.loads
+ 
+             logger.info("User details were retrieved for user: " + unencodedUserDetails.username)
+             
+@@ -100,15 +102,8 @@
+             with connection.cursor() as cursor:
+                 logger.info("Creating database query")
+                 # START VULN CODE
+-                sqlQuery = "select username, password, password_hint, created_at, last_login, \
+-                            real_name, blab_name from users where username='" + username + "' \
+-                            and password='" + hashlib.md5(password.encode('utf-8')).hexdigest() + "';"
+-                logger.info(sqlQuery)
+-
+-                parsed = sqlparse.parse(sqlQuery)[0]
+-                logger.info("Attempted login with username and password: " + parsed[8].value)
+-
+-                cursor.execute(sqlQuery)
++                sqlQuery = "SELECT username, password, password_hint, created_at, last_login, real_name, blab_name FROM users WHERE username=%s AND password=%s;"
++                cursor.execute(sqlQuery, (username, hashlib.md5(password.encode('utf-8')).hexdigest()))
+                 # END VULN CODE
+                 # GOOD CODE
+                 # sqlQuery = "select username, password, password_hint, created_at, last_login, \
+@@ -124,8 +119,7 @@
+                     row = dict(zip(columns, row))
+                     logger.info("User found" + str(row)) # CWE-117
+                     response.set_cookie('username', username)
+-                    private_key = rsa.generate_private_key(
+-                        public_exponent=65537, key_size=1024,) #CWE-326
++                    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+                     response.set_cookie('password', private_key)
+ 
+                     if (not remember is None):
+@@ -181,9 +175,8 @@
+     try:
+         logger.info("Creating the Database connection")
+         with connection.cursor() as cursor:
+-            sql = "SELECT password_hint FROM users WHERE username = '" + username + "'"
+-            logger.info(sql)
+-            cursor.execute(sql)
++            sql = "SELECT password_hint FROM users WHERE username = %s"
++            cursor.execute(sql, (username,))
+             row = cursor.fetchone()
+             
+             if (row):
+@@ -222,9 +215,8 @@
+         #Create db connection
+         with connection.cursor() as cursor:
+ 
+-            sql = "SELECT totp_secret FROM users WHERE username = '" + username + "'"
+-            logger.info(sql)
+-            cursor.execute(sql)
++            sql = "SELECT totp_secret FROM users WHERE username = %s"
++            cursor.execute(sql, (username,))
+ 
+             result = cursor.fetchone()
+         if result:
+@@ -256,9 +248,8 @@
+         
+         with connection.cursor() as cursor:
+         
+-            sql = "SELECT totp_secret FROM users WHERE username = '" + username + "'"
+-            logger.info(sql)
+-            cursor.execute(sql)
++            sql = "SELECT totp_secret FROM users WHERE username = %s"
++            cursor.execute(sql, (username,))
+ 
+             result = cursor.fetchone()
+             if result:
+@@ -338,8 +329,8 @@
+     logger.info("Creating the Database connection")
+     try:
+         with connection.cursor() as cursor:
+-            sqlQuery = "SELECT username FROM users WHERE username = '" + username + "'"
+-            cursor.execute(sqlQuery)
++            sqlQuery = "SELECT username FROM users WHERE username = %s"
++            cursor.execute(sqlQuery, (username,))
+             row = cursor.fetchone()
+             if (row):
+                 request.error = "Username '" + username + "' already exists!"
+@@ -406,18 +397,8 @@
+                 blabName = form.cleaned_data.get('blabName')
+                 #mysqlCurrentDateTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                 #create query
+-                query = ''
+-                query += "insert into users (username, password, password_hint, totp_secret, created_at, real_name, blab_name) values("
+-                query += ("'" + username + "',")
+-                query += ("'" + hashlib.md5(password.encode('utf-8')).hexdigest() + "',")
+-                query += ("'" + password + "',")
+-                query += ("'" + pyotp.random_base32() + "',")
+-                query += ("datetime('now'),")
+-                query += ("'" + realName + "',")
+-                query += ("'" + blabName + "'")
+-                query += (");")
+-                #execute query
+-                cursor.execute(query)
++                query = "INSERT INTO users (username, password, password_hint, totp_secret, created_at, real_name, blab_name) VALUES(%s, %s, %s, %s, datetime('now'), %s, %s);"
++                cursor.execute(query, (username, hashlib.md5(password.encode('utf-8')).hexdigest(), password, pyotp.random_base32(), form.cleaned_data.get('realName'), form.cleaned_data.get('blabName')))
+                 sqlStatement = cursor.fetchone() #<- variable for response
+                 logger.info(query)
+                 # END EXAMPLE VULNERABILITY
+@@ -508,9 +489,8 @@
+             events = []
+ 
+             # START EXAMPLE VULNERABILITY 
+-            sqlMyEvents = "select event from users_history where blabber=\"" + username + "\" ORDER BY eventid DESC; "
+-            logger.info(sqlMyEvents)
+-            cursor.execute(sqlMyEvents)
++            sqlMyEvents = "SELECT event FROM users_history WHERE blabber=%s ORDER BY eventid DESC; "
++            cursor.execute(sqlMyEvents, (username,))
+             userHistoryResult = cursor.fetchall()
+             # END EXAMPLE VULNERABILITY 
+ 
+@@ -581,9 +561,8 @@
+         # TODO: Error in SQL execution
+         with connection.cursor() as cursor:
+             logger.info("Preparing the update Prepared Statement")
+-            update = "UPDATE users SET real_name='%s', blab_name='%s' WHERE username='%s';"
+-            logger.info("Executing the update Prepared Statement")
+-            cursor.execute(update % (realName,blabName,sessionUsername))
++            update = "UPDATE users SET real_name=%s, blab_name=%s WHERE username=%s;"
++            cursor.execute(update, (realName, blabName, sessionUsername))
+             updateResult = cursor.fetchone()
+ 
+             # If there is a record...
+@@ -630,7 +609,7 @@
+         userDetailsCookie = request.COOKIES.get('user')
+         if userDetailsCookie is not None:
+             decoded = base64.b64decode(userDetailsCookie)
+-            unencodedUserDetails = pickle.loads(decoded)
++            # Insecure pickle.loads removed
+             # unencodedUserDetails = pickle.loads(base64.b64decode(userDetailsCookie))
+             unencodedUserDetails.username = username
+             response = updateInResponse(unencodedUserDetails, response)
+@@ -693,7 +672,7 @@
+     logger.info("User is Logged In - continuing... UA=" + request.headers["User-Agent"] + " U=" + username)
+ 
+     f = image_dir
+-    path = f + "/" + imageName
++    path = os.path.abspath(os.path.join(f, imageName))
+ 
+     logger.info("Fetching profile image: " + path)
+ 

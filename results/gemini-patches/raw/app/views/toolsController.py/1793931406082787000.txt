@@ -1,0 +1,18 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0024", "F0025"],
+  "edits": [
+    {
+      "start_line": 43,
+      "end_line": 43,
+      "replacement": "        p = subprocess.Popen(['ping', '-c', '1', '--', host], stdout=subprocess.PIPE, stderr=subprocess.PIPE)"
+    },
+    {
+      "start_line": 68,
+      "end_line": 68,
+      "replacement": "        return \"Invalid file request\""
+    }
+  ],
+  "explanation": "Addressed CWE-78 findings by 1) adding '--' to the ping command to prevent argument injection if the hostname starts with a hyphen, and 2) removing the dangerous os.system call which was concatenating user input directly into a shell command. The logic now handles valid 'fortunes' and 'riddles' files while defaulting to an error message for unknown inputs instead of executing a system command.",
+  "review_notes": "The ping command uses subprocess.Popen with a list, which is generally safe against shell injection, but adding '--' is a defensive best practice against command-line argument injection. The os.system call was completely unsafe and removed."
+}

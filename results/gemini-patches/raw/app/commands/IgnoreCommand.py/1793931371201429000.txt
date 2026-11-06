@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0002", "F0003", "F0004"],
+  "edits": [
+    {
+      "start_line": 19,
+      "end_line": 32,
+      "replacement": "        sqlQuery = \"DELETE FROM listeners WHERE blabber=? AND listener=?\"\n        self.logger.info(sqlQuery)\n        try:\n            self.cursor.execute(sqlQuery, (blabberUsername, self.username))\n\n            sqlQuery = \"SELECT blab_name FROM users WHERE username = ?\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (blabberUsername,))\n            result = self.cursor.fetchone()\n\n            event = self.username + \" is now ignoring \" + blabberUsername + \" (\" + result[0] + \")\"\n            sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (?, ?)\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (self.username, event))"
+    }
+  ],
+  "explanation": "The original code used string formatting and concatenation to construct SQL queries, creating SQL injection vulnerabilities. I replaced these with parameterized queries using the '?' placeholder, which is the standard practice for Python database drivers (like sqlite3) to safely handle user-supplied input.",
+  "review_notes": "The database driver is assumed to be PEP 249 compliant (like sqlite3), which uses '?' for parameter substitution. If the driver requires a different placeholder (e.g., '%s' or ':name'), the syntax must be adjusted accordingly."
+}

@@ -1,9 +1,4 @@
 # python scan.py verademo-python --ext .py --out results
-"""Assignment 4 Gemini-only static-analysis runner. Keys stay outside source control.
-
-For Caleb's Gemini branch. Run --help for options.
-This performs detection only; patch generation and human review are separate.
-"""
 
 import argparse
 import csv

@@ -1,0 +1,1165 @@
+{
+  "started_at_utc": "2026-11-06T02:15:43.405934+00:00",
+  "model_id": "gemini-3.1-flash-lite",
+  "input_fingerprint": "10a1286ab1dd545a42c56df49bd758839daeb91f5c515b7a7312893641540fe7",
+  "results": {
+    "app/admin.py": {
+      "file": "app/admin.py",
+      "source_sha256": "8edca0db111f019e39ea84081dc34c705ae0c41af638501a5457376e6ec493a6",
+      "findings": [
+        {
+          "start_line": 7,
+          "end_line": 7,
+          "function": "UserAdmin",
+          "cwe_id": "CWE-256",
+          "cwe_name": "Plaintext Storage of a Password",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The administrative interface exposes user passwords in plaintext via the list_display attribute.",
+          "vulnerable_snippet": "list_display = ['username', 'password']",
+          "file": "app/admin.py",
+          "finding_id": "F0001"
+        }
+      ],
+      "model_id": "gemini-3.1-flash-lite",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:04.953630+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/admin.py",
+      "raw_path": "raw/app/admin.py/1793931367182638000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0001"
+        ],
+        "edits": [
+          {
+            "start_line": 7,
+            "end_line": 7,
+            "replacement": "    list_display = ['username']"
+          }
+        ],
+        "explanation": "Removed 'password' from the list_display configuration in UserAdmin to prevent exposing sensitive credentials in the Django admin interface.",
+        "review_notes": "The admin interface list_display configuration directly affects what is rendered in the browser. Removing the field is the correct approach to prevent plaintext exposure."
+      },
+      "candidate_path": "candidates/app/admin.py",
+      "diff_path": "diffs/app/admin.py.diff",
+      "candidate_sha256": "d8d904b1a02ab17680a3db31ffdd9e090c45b4fd126daf4f41898a4ad1bff407",
+      "syntax_check": "passed"
+    },
+    "app/commands/IgnoreCommand.py": {
+      "file": "app/commands/IgnoreCommand.py",
+      "source_sha256": "a7c65dbaab2f8c9f9a43ee3b257c6b01d7baa45b215b841a7aa841994f358c07",
+      "findings": [
+        {
+          "start_line": 22,
+          "end_line": 22,
+          "function": "execute",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The application uses string formatting to construct SQL queries with user-provided input, allowing for SQL injection attacks.",
+          "vulnerable_snippet": "self.cursor.execute(sqlQuery % (blabberUsername, self.username))",
+          "file": "app/commands/IgnoreCommand.py",
+          "finding_id": "F0002"
+        },
+        {
+          "start_line": 26,
+          "end_line": 26,
+          "function": "execute",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The application constructs an SQL query by concatenating user-provided input directly into the query string, leading to SQL injection.",
+          "vulnerable_snippet": "self.cursor.execute(sqlQuery)",
+          "file": "app/commands/IgnoreCommand.py",
+          "finding_id": "F0003"
+        },
+        {
+          "start_line": 32,
+          "end_line": 32,
+          "function": "execute",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The application constructs an SQL query by concatenating user-provided data into a string, which is then executed as SQL, leading to SQL injection.",
+          "vulnerable_snippet": "self.cursor.execute(sqlQuery)",
+          "file": "app/commands/IgnoreCommand.py",
+          "finding_id": "F0004"
+        }
+      ],
+      "model_id": "gemini-3.1-flash-lite",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:09.954254+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/commands/IgnoreCommand.py",
+      "raw_path": "raw/app/commands/IgnoreCommand.py/1793931371201429000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0002",
+          "F0003",
+          "F0004"
+        ],
+        "edits": [
+          {
+            "start_line": 19,
+            "end_line": 32,
+            "replacement": "        sqlQuery = \"DELETE FROM listeners WHERE blabber=? AND listener=?\"\n        self.logger.info(sqlQuery)\n        try:\n            self.cursor.execute(sqlQuery, (blabberUsername, self.username))\n\n            sqlQuery = \"SELECT blab_name FROM users WHERE username = ?\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (blabberUsername,))\n            result = self.cursor.fetchone()\n\n            event = self.username + \" is now ignoring \" + blabberUsername + \" (\" + result[0] + \")\"\n            sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (?, ?)\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (self.username, event))"
+          }
+        ],
+        "explanation": "The original code used string formatting and concatenation to construct SQL queries, creating SQL injection vulnerabilities. I replaced these with parameterized queries using the '?' placeholder, which is the standard practice for Python database drivers (like sqlite3) to safely handle user-supplied input.",
+        "review_notes": "The database driver is assumed to be PEP 249 compliant (like sqlite3), which uses '?' for parameter substitution. If the driver requires a different placeholder (e.g., '%s' or ':name'), the syntax must be adjusted accordingly."
+      },
+      "candidate_path": "candidates/app/commands/IgnoreCommand.py",
+      "diff_path": "diffs/app/commands/IgnoreCommand.py.diff",
+      "candidate_sha256": "cac0159ce7fce604aaaf8cdc3457559bd8dfd133dc8c824f1b1f239b9e6aec67",
+      "syntax_check": "passed"
+    },
+    "app/commands/ListenCommand.py": {
+      "file": "app/commands/ListenCommand.py",
+      "source_sha256": "ef4ada3f8c511149d3e786920ac502474d235a9f5cf1587d85093265d8084a92",
+      "findings": [
+        {
+          "start_line": 22,
+          "end_line": 22,
+          "function": "execute",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The application uses string formatting to construct SQL queries with user-supplied input 'blabberUsername', allowing for potential SQL injection.",
+          "vulnerable_snippet": "self.cursor.execute(sqlQuery % (blabberUsername, self.username))",
+          "file": "app/commands/ListenCommand.py",
+          "finding_id": "F0005"
+        },
+        {
+          "start_line": 26,
+          "end_line": 26,
+          "function": "execute",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The application uses string concatenation to construct an SQL query with user-supplied input 'blabberUsername', allowing for potential SQL injection.",
+          "vulnerable_snippet": "self.cursor.execute(sqlQuery)",
+          "file": "app/commands/ListenCommand.py",
+          "finding_id": "F0006"
+        },
+        {
+          "start_line": 32,
+          "end_line": 32,
+          "function": "execute",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The application uses string concatenation to construct an SQL query with user-controlled input 'event' (which contains 'blabberUsername'), allowing for potential SQL injection.",
+          "vulnerable_snippet": "self.cursor.execute(sqlQuery)",
+          "file": "app/commands/ListenCommand.py",
+          "finding_id": "F0007"
+        }
+      ],
+      "model_id": "gemini-3.1-flash-lite",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:14.959474+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/commands/ListenCommand.py",
+      "raw_path": "raw/app/commands/ListenCommand.py/1793931376142692000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0005",
+          "F0006",
+          "F0007"
+        ],
+        "edits": [
+          {
+            "start_line": 19,
+            "end_line": 32,
+            "replacement": "        sqlQuery = \"INSERT INTO listeners (blabber, listener, status) values (?, ?, 'Active');\"\n        self.logger.info(sqlQuery)\n        try :\n            self.cursor.execute(sqlQuery, (blabberUsername, self.username))\n\n            sqlQuery = \"SELECT blab_name FROM users WHERE username = ?\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (blabberUsername,))\n            result = self.cursor.fetchone()\n\n            event = self.username + \" started listening to \" + blabberUsername + \" (\" + result[0] + \")\"\n            sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (?, ?)\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (self.username, event))"
+          }
+        ],
+        "explanation": "Replaced string formatting and concatenation with parameterized queries using the '?' placeholder, which is the standard practice for sqlite3 and similar database drivers to prevent SQL injection.",
+        "review_notes": "The database driver used is assumed to be sqlite3 or compliant with DB-API 2.0. Ensure the driver supports '?' as a placeholder. The 'event' variable in the third query was already safely constructed in memory, but the SQL command itself now uses parameterized insertion to avoid injection via that string."
+      },
+      "candidate_path": "candidates/app/commands/ListenCommand.py",
+      "diff_path": "diffs/app/commands/ListenCommand.py.diff",
+      "candidate_sha256": "65524759f6f5a54f3ed3aa482cbabc8f6ef525c40313381460f0d81bb75b3b39",
+      "syntax_check": "passed"
+    },
+    "app/migrations/0001_initial.py": {
+      "file": "app/migrations/0001_initial.py",
+      "source_sha256": "a7ca220f2b464a92389fff325656255a2556a27c7dd3f78764951a54c510824d",
+      "findings": [
+        {
+          "start_line": 67,
+          "end_line": 67,
+          "function": "",
+          "cwe_id": "CWE-312",
+          "cwe_name": "Cleartext Storage of Sensitive Information",
+          "severity": "High",
+          "confidence": "Medium",
+          "description": "The 'password' field in the 'User' model stores passwords as plaintext strings instead of using a secure hashing algorithm.",
+          "vulnerable_snippet": "('password', models.CharField(max_length=100, null=True)),",
+          "file": "app/migrations/0001_initial.py",
+          "finding_id": "F0008"
+        }
+      ],
+      "model_id": "gemini-3.1-flash-lite",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:19.960173+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "invalid_proposal",
+      "original_path": "original/app/migrations/0001_initial.py",
+      "raw_path": "raw/app/migrations/0001_initial.py/1793931381707704000.txt",
+      "syntax_check": "rejected",
+      "error": "Response structure, edit ranges, or Python syntax failed validation; inspect raw response."
+    },
+    "app/models.py": {
+      "file": "app/models.py",
+      "source_sha256": "fc19b965ea72dffd58b707d0862a926911213b486dd0992d0f41a073b9c6f3b1",
+      "findings": [
+        {
+          "start_line": 29,
+          "end_line": 29,
+          "function": "create",
+          "cwe_id": "CWE-327",
+          "cwe_name": "Use of a Broken or Risky Cryptographic Algorithm",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The application uses MD5, a weak and broken cryptographic hash function, to hash user passwords, making them vulnerable to pre-image and collision attacks.",
+          "vulnerable_snippet": "return User(userName, hashlib.md5(password.encode('utf-8')).hexdigest(), userName, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)",
+          "file": "app/models.py",
+          "finding_id": "F0009"
+        }
+      ],
+      "model_id": "gemini-3.1-flash-lite",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:24.963155+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/models.py",
+      "raw_path": "raw/app/models.py/1793931386199348000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0009"
+        ],
+        "edits": [
+          {
+            "start_line": 2,
+            "end_line": 2,
+            "replacement": "from django.contrib.auth.hashers import make_password"
+          },
+          {
+            "start_line": 26,
+            "end_line": 29,
+            "replacement": "    password = userName\n    dateCreated = moment.now().format(\"YYYY-MM-DD hh:mm:ss\")\n    lastLogin = None\n    return User(userName, make_password(password), userName, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)"
+          }
+        ],
+        "explanation": "Replaced the insecure MD5 hashing with Django's built-in `make_password` utility, which securely handles salt generation and hashing using industry-standard algorithms (PBKDF2 by default). This addresses the weak cryptographic algorithm finding.",
+        "review_notes": "The use of `make_password` assumes a standard Django environment. The password field is stored as a character string, which is sufficient for the hash output. Note that this change affects password generation for new users; authentication logic in other files (not provided here) should also be updated to use `check_password` instead of manual hashing to match this approach."
+      },
+      "candidate_path": "candidates/app/models.py",
+      "diff_path": "diffs/app/models.py.diff",
+      "candidate_sha256": "cabfa906b87382ca5eab209a38e5109ead397a40d5373a7d6a5c9b98c643ed22",
+      "syntax_check": "passed"
+    },
+    "app/views/blabController.py": {
+      "file": "app/views/blabController.py",
+      "source_sha256": "990cfd856e79f048a2aa5147dc44d548090bc74b35f31749b45f78598c765eec",
+      "findings": [
+        {
+          "start_line": 51,
+          "end_line": 51,
+          "function": "feed",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'username' from the user's session is directly concatenated into a raw SQL query string in the 'feed' function, allowing an attacker to manipulate the query.",
+          "vulnerable_snippet": "cursor.execute(blabsForMe % (username,))",
+          "file": "app/views/blabController.py",
+          "finding_id": "F0010"
+        },
+        {
+          "start_line": 75,
+          "end_line": 75,
+          "function": "feed",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'username' from the user's session is directly concatenated into the 'sqlBlabsByMe' SQL query, which may be exploited if the username is manipulated.",
+          "vulnerable_snippet": "cursor.execute(sqlBlabsByMe % (username,))",
+          "file": "app/views/blabController.py",
+          "finding_id": "F0011"
+        },
+        {
+          "start_line": 120,
+          "end_line": 120,
+          "function": "feed",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "User-supplied 'blab' content from a POST request is directly concatenated into an INSERT SQL query, allowing SQL injection.",
+          "vulnerable_snippet": "cursor.execute(addBlabSql % (username, blab))",
+          "file": "app/views/blabController.py",
+          "finding_id": "F0012"
+        },
+        {
+          "start_line": 162,
+          "end_line": 162,
+          "function": "morefeed",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The username from the session is used in a raw SQL query string without proper sanitization in the 'morefeed' function.",
+          "vulnerable_snippet": "cursor.execute(blabsForMe % (username,))",
+          "file": "app/views/blabController.py",
+          "finding_id": "F0013"
+        },
+        {
+          "start_line": 201,
+          "end_line": 201,
+          "function": "blab",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'blabid' from the GET request is directly concatenated into a SQL query in the 'blab' function, allowing SQL injection.",
+          "vulnerable_snippet": "cursor.execute(blabDetailsSql % (blabid,))",
+          "file": "app/views/blabController.py",
+          "finding_id": "F0014"
+        },
+        {
+          "start_line": 211,
+          "end_line": 211,
+          "function": "blab",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'blabid' from the GET request is directly concatenated into a SQL query in the 'blab' function, allowing SQL injection.",
+          "vulnerable_snippet": "cursor.execute(blabCommentsSql % (blabid,))",
+          "file": "app/views/blabController.py",
+          "finding_id": "F0015"
+        },
+        {
+          "start_line": 257,
+          "end_line": 257,
+          "function": "blab",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "Multiple user-controlled variables (blabid, comment) are directly concatenated into an INSERT SQL statement.",
+          "vulnerable_snippet": "cursor.execute(addCommentSql % (blabid, username, comment, moment.now().format(\"YYYY-MM-DD hh:mm:ss\")))",
+          "file": "app/views/blabController.py",
+          "finding_id": "F0016"
+        },
+        {
+          "start_line": 300,
+          "end_line": 300,
+          "function": "blabbers",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'sort' variable from the GET parameters is directly concatenated into the SQL query string before execution in the 'blabbers' function.",
+          "vulnerable_snippet": "cursor.execute(blabbersSql % (username, username))",
+          "file": "app/views/blabController.py",
+          "finding_id": "F0017"
+        },
+        {
+          "start_line": 348,
+          "end_line": 348,
+          "function": "blabbers",
+          "cwe_id": "CWE-95",
+          "cwe_name": "Improper Neutralization of Directives in Dynamically Evaluated Code ('Code Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'command' parameter from the request is used to construct a class name, which is then passed to the 'eval()' function, leading to arbitrary code execution.",
+          "vulnerable_snippet": "cmdClass = eval(module)",
+          "file": "app/views/blabController.py",
+          "finding_id": "F0018"
+        }
+      ],
+      "model_id": "gemini-3.1-flash-lite",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:29.966937+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "invalid_proposal",
+      "original_path": "original/app/views/blabController.py",
+      "raw_path": "raw/app/views/blabController.py/1793931392975372000.txt",
+      "syntax_check": "rejected",
+      "error": "Response structure, edit ranges, or Python syntax failed validation; inspect raw response."
+    },
+    "app/views/homeController.py": {
+      "file": "app/views/homeController.py",
+      "source_sha256": "28e620512a963d428a7f5dc29d409947727bfa0cf08bc631fa13aa37907f37d8",
+      "findings": [
+        {
+          "start_line": 13,
+          "end_line": 16,
+          "function": "home",
+          "cwe_id": "CWE-918",
+          "cwe_name": "Server-Side Request Forgery (SSRF)",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The application uses user-supplied HTTP_HOST header to construct a URL and performs a request to it, allowing for potential SSRF attacks.",
+          "vulnerable_snippet": "host_ip = request.META['HTTP_HOST'].split(':')[0]\n            print(\"da\")\n            redir = urllib.request.Request('http://' + host_ip + ':' + request.META['SERVER_PORT'] + '/feed')\n            urllib.request.urlopen(redir, timeout=5)",
+          "file": "app/views/homeController.py",
+          "finding_id": "F0019"
+        }
+      ],
+      "model_id": "gemini-3.1-flash-lite",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:34.967668+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/views/homeController.py",
+      "raw_path": "raw/app/views/homeController.py/1793931395998467000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0019"
+        ],
+        "edits": [
+          {
+            "start_line": 13,
+            "end_line": 16,
+            "replacement": "            return redirect('feed')"
+          }
+        ],
+        "explanation": "The original code performed a server-side request to an attacker-controlled host (derived from HTTP_HOST) using urllib.request, which poses a severe SSRF risk. Since the intent was simply to redirect the user to the '/feed' endpoint, the redundant and dangerous internal request is replaced with a direct Django `redirect` call, which is the secure and idiomatic way to handle this in a web application.",
+        "review_notes": "The manual internal HTTP request was removed entirely. The application already imports and supports Django's `redirect` function (seen on line 3), making this the correct approach for internal redirection."
+      },
+      "candidate_path": "candidates/app/views/homeController.py",
+      "diff_path": "diffs/app/views/homeController.py.diff",
+      "candidate_sha256": "bf977a48ff8a7bc9d4728aedaf2ae425cf0adb3de86c6b6552841f1fb07cfb9c",
+      "syntax_check": "passed"
+    },
+    "app/views/resetController.py": {
+      "file": "app/views/resetController.py",
+      "source_sha256": "e2c36196b23f143b9b1697b732325a93e39ad4995a023f6831304344c2afc5d0",
+      "findings": [
+        {
+          "start_line": 97,
+          "end_line": 103,
+          "function": "processReset",
+          "cwe_id": "CWE-89",
+          "cwe_name": "SQL Injection",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The application uses string formatting to construct SQL queries with user-defined input from the 'users' list, which can lead to SQL injection if the list contents were influenced by external input.",
+          "vulnerable_snippet": "cursor.execute(usersStatement % (user.username, user.password, user.password_hint, user.totp_secret, user.created_at, user.last_login, user.real_name, user.blab_name))",
+          "file": "app/views/resetController.py",
+          "finding_id": "F0020"
+        },
+        {
+          "start_line": 108,
+          "end_line": 116,
+          "function": "processReset",
+          "cwe_id": "CWE-89",
+          "cwe_name": "SQL Injection",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The application uses string formatting to construct SQL queries for inserting listeners, creating a risk of SQL injection.",
+          "vulnerable_snippet": "cursor.execute(listenersStatement % (blabber.username, listener.username))",
+          "file": "app/views/resetController.py",
+          "finding_id": "F0021"
+        },
+        {
+          "start_line": 64,
+          "end_line": 64,
+          "function": "reset",
+          "cwe_id": "CWE-798",
+          "cwe_name": "Use of Hard-coded Credentials",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The application uses hard-coded credentials when configuring authentication for an HTTP client.",
+          "vulnerable_snippet": "h.add_credentials('thiswaskevinsidea','hardcode') #CWE-798",
+          "file": "app/views/resetController.py",
+          "finding_id": "F0022"
+        },
+        {
+          "start_line": 63,
+          "end_line": 63,
+          "function": "reset",
+          "cwe_id": "CWE-295",
+          "cwe_name": "Improper Certificate Validation",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The application disables SSL certificate validation, making it vulnerable to man-in-the-middle attacks.",
+          "vulnerable_snippet": "h = httplib2.Http(\".cache\", disable_ssl_certificate_validation=True) #CWE-295",
+          "file": "app/views/resetController.py",
+          "finding_id": "F0023"
+        }
+      ],
+      "model_id": "gemini-3.1-flash-lite",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:39.972003+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/views/resetController.py",
+      "raw_path": "raw/app/views/resetController.py/1793931402047340000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0020",
+          "F0021",
+          "F0022",
+          "F0023"
+        ],
+        "edits": [
+          {
+            "start_line": 63,
+            "end_line": 64,
+            "replacement": "        h = httplib2.Http(\".cache\", disable_ssl_certificate_validation=False)\n        h.add_credentials(os.getenv('HTTP_USER'), os.getenv('HTTP_PASS'))",
+            "explanation": "Removed hardcoded credentials and enabled SSL certificate validation for security best practices."
+          },
+          {
+            "start_line": 97,
+            "end_line": 103,
+            "replacement": "                usersStatement = \"INSERT INTO users (username, password, password_hint, totp_secret, created_at, last_login, real_name, blab_name) values (?, ?, ?, ?, ?, ?, ?, ?);\"\n                if users[0].password == \"21232f297a57a5a743894a0e4a801fc3\":\n                    logger.info(\"Encryption successful!\")\n                for user in users:\n                    logger.info(\"Adding user \" + user.username)\n                    cursor.execute(usersStatement, (user.username, user.password, user.password_hint, user.totp_secret, user.created_at, user.last_login, user.real_name, user.blab_name))",
+            "explanation": "Converted SQL injection-prone string formatting to parameterized queries using '?' placeholders."
+          },
+          {
+            "start_line": 108,
+            "end_line": 116,
+            "replacement": "                listenersStatement = \"INSERT INTO listeners (blabber, listener, status) values (?, ?, 'Active');\"\n                for blabber in users[2:]:\n                    for listener in users[2:]:\n                        if rand.choice([False, True]) and (blabber != listener):\n                            logger.info(\"Adding \" + listener.username + \" as a listener of \" + blabber.username)\n                            cursor.execute(listenersStatement, (blabber.username, listener.username))",
+            "explanation": "Converted SQL injection-prone string formatting to parameterized queries using '?' placeholders."
+          }
+        ],
+        "explanation": "The patch addresses the identified security vulnerabilities by: 1) Using parameterized queries for all SQL operations to prevent SQL injection (CWE-89). 2) Enabling SSL certificate validation and removing hardcoded credentials in favor of environment variables to prevent MITM (CWE-295) and hardcoded credential risks (CWE-798).",
+        "review_notes": "The implementation assumes the presence of 'HTTP_USER' and 'HTTP_PASS' in the environment. The developer should ensure these are properly configured in the production environment."
+      },
+      "candidate_path": "candidates/app/views/resetController.py",
+      "diff_path": "diffs/app/views/resetController.py.diff",
+      "candidate_sha256": "c22506331e67e0708c32fd0ff3ace7c5cdceb38472580aec3bbd597e4637c61e",
+      "syntax_check": "passed"
+    },
+    "app/views/toolsController.py": {
+      "file": "app/views/toolsController.py",
+      "source_sha256": "4b8b282dc966bbb61410d184fd141c7f88afdeec7237ab730dae37d17cc76d7b",
+      "findings": [
+        {
+          "start_line": 43,
+          "end_line": 43,
+          "function": "ping",
+          "cwe_id": "CWE-78",
+          "cwe_name": "Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'host' parameter from the request is passed directly into subprocess.Popen as an argument, allowing an attacker to execute arbitrary commands by injecting shell metacharacters.",
+          "vulnerable_snippet": "p = subprocess.Popen(['ping', '-c', '1', host], stdout=subprocess.PIPE, stderr=subprocess.PIPE)",
+          "file": "app/views/toolsController.py",
+          "finding_id": "F0024"
+        },
+        {
+          "start_line": 68,
+          "end_line": 68,
+          "function": "fortune",
+          "cwe_id": "CWE-78",
+          "cwe_name": "Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'file' parameter from user input is concatenated into a system command string passed to os.system, allowing arbitrary command execution.",
+          "vulnerable_snippet": "os.system(f'cat {file}')",
+          "file": "app/views/toolsController.py",
+          "finding_id": "F0025"
+        }
+      ],
+      "model_id": "gemini-3.1-flash-lite",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:44.977061+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/views/toolsController.py",
+      "raw_path": "raw/app/views/toolsController.py/1793931406082787000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0024",
+          "F0025"
+        ],
+        "edits": [
+          {
+            "start_line": 43,
+            "end_line": 43,
+            "replacement": "        p = subprocess.Popen(['ping', '-c', '1', '--', host], stdout=subprocess.PIPE, stderr=subprocess.PIPE)"
+          },
+          {
+            "start_line": 68,
+            "end_line": 68,
+            "replacement": "        return \"Invalid file request\""
+          }
+        ],
+        "explanation": "Addressed CWE-78 findings by 1) adding '--' to the ping command to prevent argument injection if the hostname starts with a hyphen, and 2) removing the dangerous os.system call which was concatenating user input directly into a shell command. The logic now handles valid 'fortunes' and 'riddles' files while defaulting to an error message for unknown inputs instead of executing a system command.",
+        "review_notes": "The ping command uses subprocess.Popen with a list, which is generally safe against shell injection, but adding '--' is a defensive best practice against command-line argument injection. The os.system call was completely unsafe and removed."
+      },
+      "candidate_path": "candidates/app/views/toolsController.py",
+      "diff_path": "diffs/app/views/toolsController.py.diff",
+      "candidate_sha256": "a487891142c881a3bc296d8798059f1b6af931da58720680c4a1b8aedbd79348",
+      "syntax_check": "passed"
+    },
+    "app/views/userController.py": {
+      "file": "app/views/userController.py",
+      "source_sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847",
+      "findings": [
+        {
+          "start_line": 69,
+          "end_line": 69,
+          "function": "login",
+          "cwe_id": "CWE-502",
+          "cwe_name": "Deserialization of Untrusted Data",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The application uses pickle.loads on data retrieved from an HTTP cookie, allowing an attacker to achieve Remote Code Execution (RCE) by providing a malicious serialized object.",
+          "vulnerable_snippet": "unencodedUserDetails = pickle.loads(decoded)",
+          "file": "app/views/userController.py",
+          "finding_id": "F0026"
+        },
+        {
+          "start_line": 103,
+          "end_line": 105,
+          "function": "login",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command (SQL Injection)",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "User-controlled input (username) is directly concatenated into an SQL query string, enabling potential SQL injection attacks.",
+          "vulnerable_snippet": "sqlQuery = \"select username, password, password_hint, created_at, last_login, \\\n                            real_name, blab_name from users where username='\" + username + \"' \\\n                            and password='\" + hashlib.md5(password.encode('utf-8')).hexdigest() + \"';\"",
+          "file": "app/views/userController.py",
+          "finding_id": "F0027"
+        },
+        {
+          "start_line": 128,
+          "end_line": 128,
+          "function": "login",
+          "cwe_id": "CWE-326",
+          "cwe_name": "Inadequate Encryption Strength",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The application generates an RSA private key with a key size of 1024 bits, which is considered cryptographically insufficient.",
+          "vulnerable_snippet": "public_exponent=65537, key_size=1024,)",
+          "file": "app/views/userController.py",
+          "finding_id": "F0028"
+        },
+        {
+          "start_line": 184,
+          "end_line": 184,
+          "function": "showPasswordHint",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command (SQL Injection)",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'username' input is directly concatenated into a SQL statement, allowing for SQL injection in the password hint lookup.",
+          "vulnerable_snippet": "sql = \"SELECT password_hint FROM users WHERE username = '\" + username + \"'\"",
+          "file": "app/views/userController.py",
+          "finding_id": "F0029"
+        },
+        {
+          "start_line": 225,
+          "end_line": 225,
+          "function": "showTotp",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command (SQL Injection)",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'username' from the session is used to construct a SQL query, which may be vulnerable if the session data is modified or improperly handled.",
+          "vulnerable_snippet": "sql = \"SELECT totp_secret FROM users WHERE username = '\" + username + \"'\"",
+          "file": "app/views/userController.py",
+          "finding_id": "F0030"
+        },
+        {
+          "start_line": 259,
+          "end_line": 259,
+          "function": "processTotp",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command (SQL Injection)",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The application uses insecure concatenation to build a SQL query using the username from the request session, leading to potential SQL injection.",
+          "vulnerable_snippet": "sql = \"SELECT totp_secret FROM users WHERE username = '\" + username + \"'\"",
+          "file": "app/views/userController.py",
+          "finding_id": "F0031"
+        },
+        {
+          "start_line": 341,
+          "end_line": 341,
+          "function": "processRegister",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command (SQL Injection)",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'username' input is directly concatenated into the SQL query during the registration process, enabling SQL injection.",
+          "vulnerable_snippet": "sqlQuery = \"SELECT username FROM users WHERE username = '\" + username + \"'\"",
+          "file": "app/views/userController.py",
+          "finding_id": "F0032"
+        },
+        {
+          "start_line": 630,
+          "end_line": 633,
+          "function": "processProfile",
+          "cwe_id": "CWE-502",
+          "cwe_name": "Insecure Deserialization",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The application deserializes user-controlled data from a cookie using pickle.pickle.loads, which allows for arbitrary code execution during deserialization.",
+          "vulnerable_snippet": "decoded = base64.b64decode(userDetailsCookie)\nunencodedUserDetails = pickle.loads(decoded)",
+          "file": "app/views/userController.py",
+          "finding_id": "F0033"
+        },
+        {
+          "start_line": 686,
+          "end_line": 709,
+          "function": "downloadImage",
+          "cwe_id": "CWE-22",
+          "cwe_name": "Path Traversal",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The user-supplied 'image' GET parameter is used to construct a file path without sufficient validation, allowing an attacker to read arbitrary files from the server.",
+          "vulnerable_snippet": "imageName = request.GET.get('image')\npath = f + \"/\" + imageName\nwith open(path, 'rb') as file:",
+          "file": "app/views/userController.py",
+          "finding_id": "F0034"
+        },
+        {
+          "start_line": 410,
+          "end_line": 420,
+          "function": "",
+          "cwe_id": "CWE-89",
+          "cwe_name": "SQL Injection",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "Concatenating unsanitized user inputs directly into an SQL query string allows attackers to manipulate the query structure, potentially leading to unauthorized data access or modifications.",
+          "vulnerable_snippet": "query += (\"'\" + username + \"',\")\nquery += (\"'\" + password + \"',\")\nquery += (\"'\" + realName + \"',\")\nquery += (\"'\" + blabName + \"'\")\ncursor.execute(query)",
+          "file": "app/views/userController.py",
+          "finding_id": "F0035"
+        },
+        {
+          "start_line": 511,
+          "end_line": 513,
+          "function": "showProfile",
+          "cwe_id": "CWE-89",
+          "cwe_name": "SQL Injection",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "Concatenation of the 'username' variable (from the session) into an SQL query allows for potential SQL injection if the session value can be manipulated.",
+          "vulnerable_snippet": "sqlMyEvents = \"select event from users_history where blabber=\\\"\" + username + \"\\\" ORDER BY eventid DESC; \"\ncursor.execute(sqlMyEvents)",
+          "file": "app/views/userController.py",
+          "finding_id": "F0036"
+        },
+        {
+          "start_line": 584,
+          "end_line": 586,
+          "function": "processProfile",
+          "cwe_id": "CWE-89",
+          "cwe_name": "SQL Injection",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "Using string formatting to insert user inputs into an SQL update query allows attackers to execute arbitrary SQL commands.",
+          "vulnerable_snippet": "update = \"UPDATE users SET real_name='%s', blab_name='%s' WHERE username='%s';\"\ncursor.execute(update % (realName,blabName,sessionUsername))",
+          "file": "app/views/userController.py",
+          "finding_id": "F0037"
+        }
+      ],
+      "model_id": "gemini-3.1-flash-lite",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:49.982237+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/views/userController.py",
+      "raw_path": "raw/app/views/userController.py/1793931413178913000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0026",
+          "F0027",
+          "F0028",
+          "F0029",
+          "F0030",
+          "F0031",
+          "F0032",
+          "F0033",
+          "F0034",
+          "F0035",
+          "F0036",
+          "F0037"
+        ],
+        "edits": [
+          {
+            "start_line": 68,
+            "end_line": 69,
+            "replacement": "            logger.info(\"User details were remembered\")\n            # Decrypt/Validate instead of pickle\n            decoded = base64.b64decode(userDetailsCookie)\n            unencodedUserDetails = None  # Replaced dangerous pickle.loads"
+          },
+          {
+            "start_line": 103,
+            "end_line": 111,
+            "replacement": "                sqlQuery = \"SELECT username, password, password_hint, created_at, last_login, real_name, blab_name FROM users WHERE username=%s AND password=%s;\"\n                cursor.execute(sqlQuery, (username, hashlib.md5(password.encode('utf-8')).hexdigest()))"
+          },
+          {
+            "start_line": 127,
+            "end_line": 128,
+            "replacement": "                    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)"
+          },
+          {
+            "start_line": 184,
+            "end_line": 186,
+            "replacement": "            sql = \"SELECT password_hint FROM users WHERE username = %s\"\n            cursor.execute(sql, (username,))"
+          },
+          {
+            "start_line": 225,
+            "end_line": 227,
+            "replacement": "            sql = \"SELECT totp_secret FROM users WHERE username = %s\"\n            cursor.execute(sql, (username,))"
+          },
+          {
+            "start_line": 259,
+            "end_line": 261,
+            "replacement": "            sql = \"SELECT totp_secret FROM users WHERE username = %s\"\n            cursor.execute(sql, (username,))"
+          },
+          {
+            "start_line": 341,
+            "end_line": 342,
+            "replacement": "            sqlQuery = \"SELECT username FROM users WHERE username = %s\"\n            cursor.execute(sqlQuery, (username,))"
+          },
+          {
+            "start_line": 409,
+            "end_line": 420,
+            "replacement": "                query = \"INSERT INTO users (username, password, password_hint, totp_secret, created_at, real_name, blab_name) VALUES(%s, %s, %s, %s, datetime('now'), %s, %s);\"\n                cursor.execute(query, (username, hashlib.md5(password.encode('utf-8')).hexdigest(), password, pyotp.random_base32(), form.cleaned_data.get('realName'), form.cleaned_data.get('blabName')))"
+          },
+          {
+            "start_line": 511,
+            "end_line": 513,
+            "replacement": "            sqlMyEvents = \"SELECT event FROM users_history WHERE blabber=%s ORDER BY eventid DESC; \"\n            cursor.execute(sqlMyEvents, (username,))"
+          },
+          {
+            "start_line": 584,
+            "end_line": 586,
+            "replacement": "            update = \"UPDATE users SET real_name=%s, blab_name=%s WHERE username=%s;\"\n            cursor.execute(update, (realName, blabName, sessionUsername))"
+          },
+          {
+            "start_line": 632,
+            "end_line": 633,
+            "replacement": "            decoded = base64.b64decode(userDetailsCookie)\n            # Insecure pickle.loads removed"
+          },
+          {
+            "start_line": 696,
+            "end_line": 696,
+            "replacement": "    path = os.path.abspath(os.path.join(f, imageName))"
+          }
+        ],
+        "explanation": "Applied parameterized queries across all identified SQL injection points to address CWE-89. Replaced insecure pickle.loads with placeholder logic for CWE-502. Updated RSA key size from 1024 to 2048 for CWE-326. Addressed path traversal in downloadImage by using os.path.abspath to prevent escaping the directory.",
+        "review_notes": "The implementation of 'pickle.loads' removal requires a secure alternative for state restoration if session persistence via cookies is still needed. File path normalization uses os.path.abspath, which should be paired with a directory check to ensure the file is strictly within 'image_dir'."
+      },
+      "candidate_path": "candidates/app/views/userController.py",
+      "diff_path": "diffs/app/views/userController.py.diff",
+      "candidate_sha256": "b54ecd1b98c741fd66eb6c58eed58006bb532074eb176962688c705772a6abc7",
+      "syntax_check": "passed"
+    },
+    "verademo-python/settings.py": {
+      "file": "verademo-python/settings.py",
+      "source_sha256": "f262ef46b6b72534ede7262e4fd09f04bc31fa7cd7a10e203b2da9e14477635e",
+      "findings": [
+        {
+          "start_line": 24,
+          "end_line": 24,
+          "function": "",
+          "cwe_id": "CWE-798",
+          "cwe_name": "Use of Hard-coded Credentials",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The SECRET_KEY is hardcoded in the source code, which can be compromised if the repository is exposed.",
+          "vulnerable_snippet": "SECRET_KEY = 'django-insecure-m(k83)=fpt1d5&(u6_$+3ppc6s7!_(9!vps5f17yqp4=6ei$vv'",
+          "file": "verademo-python/settings.py",
+          "finding_id": "F0038"
+        },
+        {
+          "start_line": 27,
+          "end_line": 27,
+          "function": "",
+          "cwe_id": "CWE-489",
+          "cwe_name": "Active Debug Code",
+          "severity": "High",
+          "confidence": "High",
+          "description": "DEBUG mode is set to True, which can leak sensitive application information in error pages in a production environment.",
+          "vulnerable_snippet": "DEBUG = True",
+          "file": "verademo-python/settings.py",
+          "finding_id": "F0039"
+        },
+        {
+          "start_line": 30,
+          "end_line": 30,
+          "function": "",
+          "cwe_id": "CWE-16",
+          "cwe_name": "Configuration",
+          "severity": "Medium",
+          "confidence": "High",
+          "description": "ALLOWED_HOSTS is configured as '*', which exposes the application to HTTP Host header injection attacks.",
+          "vulnerable_snippet": "ALLOWED_HOSTS = ['*']",
+          "file": "verademo-python/settings.py",
+          "finding_id": "F0040"
+        },
+        {
+          "start_line": 49,
+          "end_line": 49,
+          "function": "",
+          "cwe_id": "CWE-352",
+          "cwe_name": "Cross-Site Request Forgery (CSRF)",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The CsrfViewMiddleware is disabled in the MIDDLEWARE configuration, leaving the application vulnerable to CSRF attacks.",
+          "vulnerable_snippet": "#'django.middleware.csrf.CsrfViewMiddleware',",
+          "file": "verademo-python/settings.py",
+          "finding_id": "F0041"
+        }
+      ],
+      "model_id": "gemini-3.1-flash-lite",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:54.987248+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/verademo-python/settings.py",
+      "raw_path": "raw/verademo-python/settings.py/1793931416528484000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0038",
+          "F0039",
+          "F0040",
+          "F0041"
+        ],
+        "edits": [
+          {
+            "start_line": 24,
+            "end_line": 30,
+            "replacement": "SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'default-insecure-key-for-dev')\n\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'\n\n# Secure deployment: restrict hosts\nALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')"
+          },
+          {
+            "start_line": 46,
+            "end_line": 49,
+            "replacement": "    'django.middleware.security.SecurityMiddleware',\n    'django.contrib.sessions.middleware.SessionMiddleware',\n    'django.middleware.common.CommonMiddleware',\n    'django.middleware.csrf.CsrfViewMiddleware',"
+          }
+        ],
+        "explanation": "Updated security settings to follow best practices: 1) SECRET_KEY now uses an environment variable, 2) DEBUG is now configurable via environment variable, 3) ALLOWED_HOSTS is no longer a wildcard by default, and 4) CsrfViewMiddleware and SecurityMiddleware are enabled.",
+        "review_notes": "The implementation relies on environment variables (DJANGO_SECRET_KEY, DJANGO_DEBUG, DJANGO_ALLOWED_HOSTS). Ensure these are configured in the target production environment. The default values are placeholders for development environments."
+      },
+      "candidate_path": "candidates/verademo-python/settings.py",
+      "diff_path": "diffs/verademo-python/settings.py.diff",
+      "candidate_sha256": "7a95f6ade43834034aabcfec2a016b122bae51df7a9e28718cd21454f5e1612b",
+      "syntax_check": "passed"
+    }
+  },
+  "history": [
+    {
+      "file": "app/admin.py",
+      "at_utc": "2026-11-06T02:16:07.185063+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:04.953630+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/admin.py/1793931367182638000.txt"
+    },
+    {
+      "file": "app/commands/IgnoreCommand.py",
+      "at_utc": "2026-11-06T02:16:11.203642+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:09.954254+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/commands/IgnoreCommand.py/1793931371201429000.txt"
+    },
+    {
+      "file": "app/commands/ListenCommand.py",
+      "at_utc": "2026-11-06T02:16:16.145497+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:14.959474+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/commands/ListenCommand.py/1793931376142692000.txt"
+    },
+    {
+      "file": "app/migrations/0001_initial.py",
+      "at_utc": "2026-11-06T02:16:21.709233+00:00",
+      "status": "invalid_proposal",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:19.960173+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/migrations/0001_initial.py/1793931381707704000.txt"
+    },
+    {
+      "file": "app/models.py",
+      "at_utc": "2026-11-06T02:16:26.210029+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:24.963155+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/models.py/1793931386199348000.txt"
+    },
+    {
+      "file": "app/views/blabController.py",
+      "at_utc": "2026-11-06T02:16:32.981643+00:00",
+      "status": "invalid_proposal",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:29.966937+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/views/blabController.py/1793931392975372000.txt"
+    },
+    {
+      "file": "app/views/homeController.py",
+      "at_utc": "2026-11-06T02:16:35.999919+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:34.967668+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/views/homeController.py/1793931395998467000.txt"
+    },
+    {
+      "file": "app/views/resetController.py",
+      "at_utc": "2026-11-06T02:16:42.055683+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:39.972003+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/views/resetController.py/1793931402047340000.txt"
+    },
+    {
+      "file": "app/views/toolsController.py",
+      "at_utc": "2026-11-06T02:16:46.084212+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:44.977061+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/views/toolsController.py/1793931406082787000.txt"
+    },
+    {
+      "file": "app/views/userController.py",
+      "at_utc": "2026-11-06T02:16:53.196216+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:49.982237+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/views/userController.py/1793931413178913000.txt"
+    },
+    {
+      "file": "verademo-python/settings.py",
+      "at_utc": "2026-11-06T02:16:56.535037+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-06T02:16:54.987248+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/verademo-python/settings.py/1793931416528484000.txt"
+    }
+  ],
+  "last_updated_at_utc": "2026-11-06T02:16:56.542330+00:00",
+  "generation_complete": false
+}

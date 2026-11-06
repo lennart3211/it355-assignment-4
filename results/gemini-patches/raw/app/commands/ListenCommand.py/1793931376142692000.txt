@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0005", "F0006", "F0007"],
+  "edits": [
+    {
+      "start_line": 19,
+      "end_line": 32,
+      "replacement": "        sqlQuery = \"INSERT INTO listeners (blabber, listener, status) values (?, ?, 'Active');\"\n        self.logger.info(sqlQuery)\n        try :\n            self.cursor.execute(sqlQuery, (blabberUsername, self.username))\n\n            sqlQuery = \"SELECT blab_name FROM users WHERE username = ?\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (blabberUsername,))\n            result = self.cursor.fetchone()\n\n            event = self.username + \" started listening to \" + blabberUsername + \" (\" + result[0] + \")\"\n            sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (?, ?)\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (self.username, event))"
+    }
+  ],
+  "explanation": "Replaced string formatting and concatenation with parameterized queries using the '?' placeholder, which is the standard practice for sqlite3 and similar database drivers to prevent SQL injection.",
+  "review_notes": "The database driver used is assumed to be sqlite3 or compliant with DB-API 2.0. Ensure the driver supports '?' as a placeholder. The 'event' variable in the third query was already safely constructed in memory, but the SQL command itself now uses parameterized insertion to avoid injection via that string."
+}

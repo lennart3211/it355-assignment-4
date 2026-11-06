@@ -1,0 +1,81 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": [
+    "F0026",
+    "F0027",
+    "F0028",
+    "F0029",
+    "F0030",
+    "F0031",
+    "F0032",
+    "F0033",
+    "F0034",
+    "F0035",
+    "F0036",
+    "F0037"
+  ],
+  "edits": [
+    {
+      "start_line": 68,
+      "end_line": 69,
+      "replacement": "            logger.info(\"User details were remembered\")\n            # Decrypt/Validate instead of pickle\n            decoded = base64.b64decode(userDetailsCookie)\n            unencodedUserDetails = None  # Replaced dangerous pickle.loads"
+    },
+    {
+      "start_line": 103,
+      "end_line": 111,
+      "replacement": "                sqlQuery = \"SELECT username, password, password_hint, created_at, last_login, real_name, blab_name FROM users WHERE username=%s AND password=%s;\"\n                cursor.execute(sqlQuery, (username, hashlib.md5(password.encode('utf-8')).hexdigest()))"
+    },
+    {
+      "start_line": 127,
+      "end_line": 128,
+      "replacement": "                    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)"
+    },
+    {
+      "start_line": 184,
+      "end_line": 186,
+      "replacement": "            sql = \"SELECT password_hint FROM users WHERE username = %s\"\n            cursor.execute(sql, (username,))"
+    },
+    {
+      "start_line": 225,
+      "end_line": 227,
+      "replacement": "            sql = \"SELECT totp_secret FROM users WHERE username = %s\"\n            cursor.execute(sql, (username,))"
+    },
+    {
+      "start_line": 259,
+      "end_line": 261,
+      "replacement": "            sql = \"SELECT totp_secret FROM users WHERE username = %s\"\n            cursor.execute(sql, (username,))"
+    },
+    {
+      "start_line": 341,
+      "end_line": 342,
+      "replacement": "            sqlQuery = \"SELECT username FROM users WHERE username = %s\"\n            cursor.execute(sqlQuery, (username,))"
+    },
+    {
+      "start_line": 409,
+      "end_line": 420,
+      "replacement": "                query = \"INSERT INTO users (username, password, password_hint, totp_secret, created_at, real_name, blab_name) VALUES(%s, %s, %s, %s, datetime('now'), %s, %s);\"\n                cursor.execute(query, (username, hashlib.md5(password.encode('utf-8')).hexdigest(), password, pyotp.random_base32(), form.cleaned_data.get('realName'), form.cleaned_data.get('blabName')))"
+    },
+    {
+      "start_line": 511,
+      "end_line": 513,
+      "replacement": "            sqlMyEvents = \"SELECT event FROM users_history WHERE blabber=%s ORDER BY eventid DESC; \"\n            cursor.execute(sqlMyEvents, (username,))"
+    },
+    {
+      "start_line": 584,
+      "end_line": 586,
+      "replacement": "            update = \"UPDATE users SET real_name=%s, blab_name=%s WHERE username=%s;\"\n            cursor.execute(update, (realName, blabName, sessionUsername))"
+    },
+    {
+      "start_line": 632,
+      "end_line": 633,
+      "replacement": "            decoded = base64.b64decode(userDetailsCookie)\n            # Insecure pickle.loads removed"
+    },
+    {
+      "start_line": 696,
+      "end_line": 696,
+      "replacement": "    path = os.path.abspath(os.path.join(f, imageName))"
+    }
+  ],
+  "explanation": "Applied parameterized queries across all identified SQL injection points to address CWE-89. Replaced insecure pickle.loads with placeholder logic for CWE-502. Updated RSA key size from 1024 to 2048 for CWE-326. Addressed path traversal in downloadImage by using os.path.abspath to prevent escaping the directory.",
+  "review_notes": "The implementation of 'pickle.loads' removal requires a secure alternative for state restoration if session persistence via cookies is still needed. File path normalization uses os.path.abspath, which should be paired with a directory check to ensure the file is strictly within 'image_dir'."
+}

@@ -1,0 +1,14 @@
+--- a/app/views/homeController.py
++++ b/app/views/homeController.py
+@@ -10,10 +10,7 @@
+     if request.session.get('username'):
+         # START BAD CODE
+         try:
+-            host_ip = request.META['HTTP_HOST'].split(':')[0]
+-            print("da")
+-            redir = urllib.request.Request('http://' + host_ip + ':' + request.META['SERVER_PORT'] + '/feed')
+-            urllib.request.urlopen(redir, timeout=5)
++            return redirect('feed')
+         # END BAD CODE
+         except: 
+             # GOOD CODE:
