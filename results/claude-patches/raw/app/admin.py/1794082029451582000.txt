@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0001"],
+  "edits": [
+    {
+      "start_line": 7,
+      "end_line": 7,
+      "replacement": "    list_display = ['username']\n    exclude = ['password']"
+    }
+  ],
+  "explanation": "Removed the 'password' column from the User admin changelist so credential values (hashed or otherwise) are not displayed to every admin viewer. Also excluded the field from the admin edit form so it is not rendered there either.",
+  "review_notes": "Verify that the custom User model has a 'password' field (exclude would error on a nonexistent field only if explicitly referenced in a form; check admin loads). If admins need to set passwords, consider subclassing django.contrib.auth.admin.UserAdmin, which provides a safe password-change form. Separately confirm passwords are stored with a strong hash, since the model is not shown and plaintext storage would remain a vulnerability. Excluding the field may prevent creating users via admin with a password; adjust to your workflow."
+}

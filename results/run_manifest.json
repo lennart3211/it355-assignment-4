@@ -1,0 +1,51 @@
+{
+  "provider": "claude",
+  "model_id": "claude-sonnet-5-5",
+  "files": [
+    {
+      "file": "app/admin.py",
+      "sha256": "8edca0db111f019e39ea84081dc34c705ae0c41af638501a5457376e6ec493a6"
+    },
+    {
+      "file": "app/commands/IgnoreCommand.py",
+      "sha256": "a7c65dbaab2f8c9f9a43ee3b257c6b01d7baa45b215b841a7aa841994f358c07"
+    },
+    {
+      "file": "app/commands/ListenCommand.py",
+      "sha256": "ef4ada3f8c511149d3e786920ac502474d235a9f5cf1587d85093265d8084a92"
+    },
+    {
+      "file": "app/forms.py",
+      "sha256": "5798567f5e61c04fbedc003f2d619f3db998e2837c60b00cfc39cf826f0fb3cc"
+    },
+    {
+      "file": "app/models.py",
+      "sha256": "fc19b965ea72dffd58b707d0862a926911213b486dd0992d0f41a073b9c6f3b1"
+    },
+    {
+      "file": "app/views/blabController.py",
+      "sha256": "990cfd856e79f048a2aa5147dc44d548090bc74b35f31749b45f78598c765eec"
+    },
+    {
+      "file": "app/views/homeController.py",
+      "sha256": "28e620512a963d428a7f5dc29d409947727bfa0cf08bc631fa13aa37907f37d8"
+    },
+    {
+      "file": "app/views/resetController.py",
+      "sha256": "e2c36196b23f143b9b1697b732325a93e39ad4995a023f6831304344c2afc5d0"
+    },
+    {
+      "file": "app/views/toolsController.py",
+      "sha256": "4b8b282dc966bbb61410d184fd141c7f88afdeec7237ab730dae37d17cc76d7b"
+    },
+    {
+      "file": "app/views/userController.py",
+      "sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847"
+    },
+    {
+      "file": "verademo-python/settings.py",
+      "sha256": "f262ef46b6b72534ede7262e4fd09f04bc31fa7cd7a10e203b2da9e14477635e"
+    }
+  ],
+  "complete": true
+}

@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0005", "F0006", "F0007"],
+  "edits": [
+    {
+      "start_line": 19,
+      "end_line": 32,
+      "replacement": "        sqlQuery = \"INSERT INTO listeners (blabber, listener, status) values (%s, %s, 'Active');\"\n        self.logger.info(sqlQuery)\n        try :\n            self.cursor.execute(sqlQuery, (blabberUsername, self.username))\n\n            sqlQuery = \"SELECT blab_name FROM users WHERE username = %s\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (blabberUsername,))\n            result = self.cursor.fetchone()\n\n            event = self.username + \" started listening to \" + blabberUsername + \" (\" + result[0] + \")\"\n            sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (%s, %s)\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (self.username, event))"
+    }
+  ],
+  "explanation": "All three queries now use the DB-API parameter binding of cursor.execute(query, params). User-controlled values (blabberUsername, self.username) and the stored blab_name, which is embedded in the event string, are passed as bound parameters instead of being concatenated or %-formatted into the SQL. This also closes the second-order injection path. The logged query text now contains only placeholders.",
+  "review_notes": "I assumed a driver that uses the %s paramstyle (mysql-connector, PyMySQL, psycopg2), which matches the original code's use of %s. If the driver is sqlite3 or another qmark-style driver, change the placeholders to ?. The existing bare except and the logger.error call with an extra argument were left unchanged. result may be None if the user doesn't exist, which the except block still swallows. Test against the actual database."
+}

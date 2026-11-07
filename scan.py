@@ -2,6 +2,7 @@
 
 import argparse
 import csv
+import hashlib
 import json
 import re
 import time
@@ -70,6 +71,10 @@ def call_claude(system, user, model):
 
 
 CALLERS = {"claude": call_claude}
+
+
+def sha256(data):
+    return hashlib.sha256(data).hexdigest()
 
 
 def call_with_retry(provider, system, user, retries=4):
@@ -187,6 +192,18 @@ def main():
         w = csv.DictWriter(fh, fieldnames=cols, extrasaction="ignore")
         w.writeheader()
         w.writerows(all_rows)
+    
+    # Generate manifest for each provider
+    for provider in args.models:
+        manifest = {
+            "provider": provider,
+            "model_id": MODELS[provider],
+            "files": [{"file": f.relative_to(root).as_posix(), "sha256": sha256(f.read_bytes())} 
+                      for f in files],
+            "complete": True
+        }
+        (out / "run_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    
     print(f"Done -> {out}/findings_all.csv")
 
 

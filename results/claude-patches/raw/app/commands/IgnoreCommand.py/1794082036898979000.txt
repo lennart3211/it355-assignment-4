@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0002", "F0003", "F0004"],
+  "edits": [
+    {
+      "start_line": 19,
+      "end_line": 32,
+      "replacement": "        sqlQuery = \"DELETE FROM listeners WHERE blabber=%s AND listener=%s;\"\n        self.logger.info(sqlQuery)\n        try :\n            self.cursor.execute(sqlQuery, (blabberUsername, self.username))\n\n            sqlQuery = \"SELECT blab_name FROM users WHERE username = %s\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (blabberUsername,))\n            result = self.cursor.fetchone()\n\n            event = self.username + \" is now ignoring \" + blabberUsername + \" (\" + result[0] + \")\"\n            sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (%s, %s)\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (self.username, event))"
+    }
+  ],
+  "explanation": "All three queries (DELETE, SELECT, INSERT) now use placeholders with values passed as a separate parameter tuple to cursor.execute, so the DB driver binds the values instead of Python building the SQL string. The event string, which includes a value read back from the database, is bound as a parameter in the INSERT, which closes the second-order injection.",
+  "review_notes": "This assumes a DB-API driver that uses the %s paramstyle (e.g. mysql-connector or PyMySQL, which fits the MySQL-style original). If the driver uses ? or named placeholders, adjust accordingly. The bare except and the logger.error call with extra args are unchanged and were not part of these findings. The code still assumes the SELECT returns a row (result[0])."
+}

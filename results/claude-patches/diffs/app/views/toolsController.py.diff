@@ -1,0 +1,25 @@
+--- a/app/views/toolsController.py
++++ b/app/views/toolsController.py
+@@ -40,7 +40,9 @@
+     output = ""
+     logger.info("Pinging " + host)
+     try:
+-        p = subprocess.Popen(['ping', '-c', '1', host], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
++        if host.startswith('-') or any(c.isspace() for c in host):
++            raise ValueError('Invalid host')
++        p = subprocess.Popen(['ping', '-c', '1', '--', host], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+         
+         stdout, stderr = p.communicate(timeout=5)
+     
+@@ -63,9 +65,9 @@
+         return FortuneData()
+     elif file == 'riddles':
+         return RiddleData()
+-    # OS Command Injection CWE-78
+     else:
+-        os.system(f'cat {file}')
++        logger.warning("Rejected unknown fortune selection")
++        return ""
+    
+         
+ 

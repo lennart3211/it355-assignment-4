@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0025"],
+  "edits": [
+    {
+      "start_line": 10,
+      "end_line": 21,
+      "replacement": "    if request.session.get('username'):\n        return redirect('feed')"
+    }
+  ],
+  "explanation": "The view built a URL from the attacker-controlled Host header and fetched it server-side with urllib.request.urlopen, which is a blind SSRF. The request's result was never used. The except branch always ended in redirect('feed'), and a successful fetch fell through to login(request). I removed the outbound request and redirect to the 'feed' view directly for logged-in users. This is the evident intended behavior, and it no longer makes any server-side request.",
+  "review_notes": "One behavior difference: before, if the self-request succeeded (no exception), a logged-in user fell through to login(request). That looks like a bug, since the comment says logged-in users go to the feed. Confirm that redirecting them to the feed is the intended behavior. The now-unused 'import urllib' on line 5 is harmless and can be removed. The debug print statements were removed with the block. Also check that the 'feed' URL name exists."
+}

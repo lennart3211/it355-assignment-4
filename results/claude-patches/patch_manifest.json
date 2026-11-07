@@ -1,0 +1,1596 @@
+{
+  "started_at_utc": "2026-11-07T20:07:02.998740+00:00",
+  "model_id": "claude-sonnet-5-5",
+  "input_fingerprint": "c525d258d1107228c489d1c42d99d2d5a31fc4b9fd6fdc06560b170eed8a9b99",
+  "results": {
+    "app/admin.py": {
+      "file": "app/admin.py",
+      "source_sha256": "8edca0db111f019e39ea84081dc34c705ae0c41af638501a5457376e6ec493a6",
+      "findings": [
+        {
+          "start_line": 7,
+          "end_line": 7,
+          "function": "UserAdmin",
+          "cwe_id": "CWE-200",
+          "cwe_name": "Exposure of Sensitive Information to an Unauthorized Actor",
+          "severity": "Medium",
+          "confidence": "Medium",
+          "description": "The admin changelist for User lists the 'password' column for every user. If the app's custom User model stores plaintext or weakly hashed passwords, anyone with admin view access, or anyone who can see an admin screen, can read all credentials. Admin-site XSS or shoulder-surfing would expose them as well.",
+          "vulnerable_snippet": "list_display = ['username', 'password']",
+          "file": "app/admin.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0001"
+        }
+      ],
+      "model_id": "claude-sonnet-5-5",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:07:03.000195+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/admin.py",
+      "raw_path": "raw/app/admin.py/1794082029451582000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0001"
+        ],
+        "edits": [
+          {
+            "start_line": 7,
+            "end_line": 7,
+            "replacement": "    list_display = ['username']\n    exclude = ['password']"
+          }
+        ],
+        "explanation": "Removed the 'password' column from the User admin changelist so credential values (hashed or otherwise) are not displayed to every admin viewer. Also excluded the field from the admin edit form so it is not rendered there either.",
+        "review_notes": "Verify that the custom User model has a 'password' field (exclude would error on a nonexistent field only if explicitly referenced in a form; check admin loads). If admins need to set passwords, consider subclassing django.contrib.auth.admin.UserAdmin, which provides a safe password-change form. Separately confirm passwords are stored with a strong hash, since the model is not shown and plaintext storage would remain a vulnerability. Excluding the field may prevent creating users via admin with a password; adjust to your workflow."
+      },
+      "candidate_path": "candidates/app/admin.py",
+      "diff_path": "diffs/app/admin.py.diff",
+      "candidate_sha256": "7515cc7055d0c61ce36c55ef70b3aa3d9cbbfbc315792382288397e62ba88915",
+      "syntax_check": "passed"
+    },
+    "app/commands/IgnoreCommand.py": {
+      "file": "app/commands/IgnoreCommand.py",
+      "source_sha256": "a7c65dbaab2f8c9f9a43ee3b257c6b01d7baa45b215b841a7aa841994f358c07",
+      "findings": [
+        {
+          "start_line": 22,
+          "end_line": 22,
+          "function": "execute",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The DELETE statement is built by string-formatting blabberUsername and self.username directly into the SQL. An attacker who controls either value can inject SQL and alter or delete arbitrary rows.",
+          "vulnerable_snippet": "self.cursor.execute(sqlQuery % (blabberUsername, self.username))",
+          "file": "app/commands/IgnoreCommand.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0002"
+        },
+        {
+          "start_line": 24,
+          "end_line": 26,
+          "function": "execute",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The SELECT query concatenates blabberUsername directly into the SQL string, so it can be injected through that parameter, leading to data disclosure or manipulation.",
+          "vulnerable_snippet": "sqlQuery = \"SELECT blab_name FROM users WHERE username = '\" + blabberUsername + \"'\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery)",
+          "file": "app/commands/IgnoreCommand.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0003"
+        },
+        {
+          "start_line": 29,
+          "end_line": 32,
+          "function": "execute",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The INSERT concatenates self.username and an event string containing blabberUsername and a value read from the database (second-order injection) into the SQL without parameterization.",
+          "vulnerable_snippet": "sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (\\\"\" + self.username + \"\\\", \\\"\" + event + \"\\\")\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery)",
+          "file": "app/commands/IgnoreCommand.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0004"
+        }
+      ],
+      "model_id": "claude-sonnet-5-5",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:07:09.455779+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/commands/IgnoreCommand.py",
+      "raw_path": "raw/app/commands/IgnoreCommand.py/1794082036898979000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0002",
+          "F0003",
+          "F0004"
+        ],
+        "edits": [
+          {
+            "start_line": 19,
+            "end_line": 32,
+            "replacement": "        sqlQuery = \"DELETE FROM listeners WHERE blabber=%s AND listener=%s;\"\n        self.logger.info(sqlQuery)\n        try :\n            self.cursor.execute(sqlQuery, (blabberUsername, self.username))\n\n            sqlQuery = \"SELECT blab_name FROM users WHERE username = %s\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (blabberUsername,))\n            result = self.cursor.fetchone()\n\n            event = self.username + \" is now ignoring \" + blabberUsername + \" (\" + result[0] + \")\"\n            sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (%s, %s)\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (self.username, event))"
+          }
+        ],
+        "explanation": "All three queries (DELETE, SELECT, INSERT) now use placeholders with values passed as a separate parameter tuple to cursor.execute, so the DB driver binds the values instead of Python building the SQL string. The event string, which includes a value read back from the database, is bound as a parameter in the INSERT, which closes the second-order injection.",
+        "review_notes": "This assumes a DB-API driver that uses the %s paramstyle (e.g. mysql-connector or PyMySQL, which fits the MySQL-style original). If the driver uses ? or named placeholders, adjust accordingly. The bare except and the logger.error call with extra args are unchanged and were not part of these findings. The code still assumes the SELECT returns a row (result[0])."
+      },
+      "candidate_path": "candidates/app/commands/IgnoreCommand.py",
+      "diff_path": "diffs/app/commands/IgnoreCommand.py.diff",
+      "candidate_sha256": "9431a647066d1f011ad2deb095ecda260cf12d2214094aaf04e15b68ce9a5f0f",
+      "syntax_check": "passed"
+    },
+    "app/commands/ListenCommand.py": {
+      "file": "app/commands/ListenCommand.py",
+      "source_sha256": "ef4ada3f8c511149d3e786920ac502474d235a9f5cf1587d85093265d8084a92",
+      "findings": [
+        {
+          "start_line": 22,
+          "end_line": 22,
+          "function": "execute",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The blabberUsername and self.username values are interpolated into the INSERT statement with string formatting rather than bound parameters. An attacker who controls either value can inject arbitrary SQL.",
+          "vulnerable_snippet": "self.cursor.execute(sqlQuery % (blabberUsername, self.username))",
+          "file": "app/commands/ListenCommand.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0005"
+        },
+        {
+          "start_line": 24,
+          "end_line": 26,
+          "function": "execute",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The blabberUsername value is concatenated directly into the SELECT query and then executed, so it is open to SQL injection.",
+          "vulnerable_snippet": "sqlQuery = \"SELECT blab_name FROM users WHERE username = '\" + blabberUsername + \"'\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery)",
+          "file": "app/commands/ListenCommand.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0006"
+        },
+        {
+          "start_line": 29,
+          "end_line": 32,
+          "function": "execute",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The username, blabberUsername, and the blab_name read from the database are concatenated into the INSERT statement. This allows SQL injection, including second-order injection through the stored blab_name.",
+          "vulnerable_snippet": "event = self.username + \" started listening to \" + blabberUsername + \" (\" + result[0] + \")\"\n            sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (\\\"\" + self.username + \"\\\", \\\"\" + event + \"\\\")\"\n            self.cursor.execute(sqlQuery)",
+          "file": "app/commands/ListenCommand.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0007"
+        }
+      ],
+      "model_id": "claude-sonnet-5-5",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:07:16.909792+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/commands/ListenCommand.py",
+      "raw_path": "raw/app/commands/ListenCommand.py/1794082044775987000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0005",
+          "F0006",
+          "F0007"
+        ],
+        "edits": [
+          {
+            "start_line": 19,
+            "end_line": 32,
+            "replacement": "        sqlQuery = \"INSERT INTO listeners (blabber, listener, status) values (%s, %s, 'Active');\"\n        self.logger.info(sqlQuery)\n        try :\n            self.cursor.execute(sqlQuery, (blabberUsername, self.username))\n\n            sqlQuery = \"SELECT blab_name FROM users WHERE username = %s\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (blabberUsername,))\n            result = self.cursor.fetchone()\n\n            event = self.username + \" started listening to \" + blabberUsername + \" (\" + result[0] + \")\"\n            sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (%s, %s)\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (self.username, event))"
+          }
+        ],
+        "explanation": "All three queries now use the DB-API parameter binding of cursor.execute(query, params). User-controlled values (blabberUsername, self.username) and the stored blab_name, which is embedded in the event string, are passed as bound parameters instead of being concatenated or %-formatted into the SQL. This also closes the second-order injection path. The logged query text now contains only placeholders.",
+        "review_notes": "I assumed a driver that uses the %s paramstyle (mysql-connector, PyMySQL, psycopg2), which matches the original code's use of %s. If the driver is sqlite3 or another qmark-style driver, change the placeholders to ?. The existing bare except and the logger.error call with an extra argument were left unchanged. result may be None if the user doesn't exist, which the except block still swallows. Test against the actual database."
+      },
+      "candidate_path": "candidates/app/commands/ListenCommand.py",
+      "diff_path": "diffs/app/commands/ListenCommand.py.diff",
+      "candidate_sha256": "af478657746a0c77ed140f6ffde6cd05643aaf096a00cb7728537eeb0a239a27",
+      "syntax_check": "passed"
+    },
+    "app/forms.py": {
+      "file": "app/forms.py",
+      "source_sha256": "5798567f5e61c04fbedc003f2d619f3db998e2837c60b00cfc39cf826f0fb3cc",
+      "findings": [
+        {
+          "start_line": 15,
+          "end_line": 16,
+          "function": "RegisterForm",
+          "cwe_id": "CWE-549",
+          "cwe_name": "Missing Password Field Masking",
+          "severity": "Low",
+          "confidence": "Medium",
+          "description": "The password and cpassword fields are plain CharFields with no PasswordInput widget. They render as visible text inputs, which exposes the typed password to shoulder surfing and can leave it in browser autofill or history.",
+          "vulnerable_snippet": "    password = forms.CharField(max_length=100)\n    cpassword = forms.CharField(max_length=100)",
+          "file": "app/forms.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0008"
+        },
+        {
+          "start_line": 10,
+          "end_line": 12,
+          "function": "UserForm.Meta",
+          "cwe_id": "CWE-549",
+          "cwe_name": "Missing Password Field Masking",
+          "severity": "Low",
+          "confidence": "Low",
+          "description": "The ModelForm exposes the model's 'password' field without overriding its widget, so it renders as a visible text input instead of a masked password field.",
+          "vulnerable_snippet": "        fields = [\n            'username','password','blab_name','real_name'\n        ]",
+          "file": "app/forms.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0009"
+        }
+      ],
+      "model_id": "claude-sonnet-5-5",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:07:24.784984+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/forms.py",
+      "raw_path": "raw/app/forms.py/1794082048879629000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0008",
+          "F0009"
+        ],
+        "edits": [
+          {
+            "start_line": 8,
+            "end_line": 12,
+            "replacement": "    class Meta:\n        model = User\n        fields = [\n            'username','password','blab_name','real_name'\n        ]\n        widgets = {\n            'password': forms.PasswordInput(),\n        }"
+          },
+          {
+            "start_line": 15,
+            "end_line": 16,
+            "replacement": "    password = forms.CharField(max_length=100, widget=forms.PasswordInput)\n    cpassword = forms.CharField(max_length=100, widget=forms.PasswordInput)"
+          }
+        ],
+        "explanation": "Added forms.PasswordInput widgets so password fields render as masked inputs (type=password) in both the ModelForm and the RegisterForm. Field names, validation, and form structure are unchanged.",
+        "review_notes": "PasswordInput does not re-render submitted values by default, so on validation errors users must retype passwords (standard behavior). Note that the ModelForm still handles the password field as a plain model field; storage/hashing is handled elsewhere and was not reviewed. Add autocomplete attributes (e.g., 'new-password') if desired. Not tested."
+      },
+      "candidate_path": "candidates/app/forms.py",
+      "diff_path": "diffs/app/forms.py.diff",
+      "candidate_sha256": "01485e516c874b1f4a415c060b252ce85a765abfdcc64e97b5bc396ff599c0b4",
+      "syntax_check": "passed"
+    },
+    "app/models.py": {
+      "file": "app/models.py",
+      "source_sha256": "fc19b965ea72dffd58b707d0862a926911213b486dd0992d0f41a073b9c6f3b1",
+      "findings": [
+        {
+          "start_line": 26,
+          "end_line": 29,
+          "function": "create",
+          "cwe_id": "CWE-1391",
+          "cwe_name": "Use of Weak Credentials",
+          "severity": "High",
+          "confidence": "High",
+          "description": "A new user's initial password is set to their own username, and the password hint is also the username, so anyone who knows a username can guess the password and log in.",
+          "vulnerable_snippet": "password = userName\n    ...\n    return User(userName, hashlib.md5(password.encode('utf-8')).hexdigest(), userName, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)",
+          "file": "app/models.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0010"
+        },
+        {
+          "start_line": 29,
+          "end_line": 29,
+          "function": "create",
+          "cwe_id": "CWE-328",
+          "cwe_name": "Use of Weak Hash",
+          "severity": "High",
+          "confidence": "High",
+          "description": "Passwords are hashed with unsalted MD5, which is fast and easy to crack with rainbow tables or brute force if the database is exposed.",
+          "vulnerable_snippet": "hashlib.md5(password.encode('utf-8')).hexdigest()",
+          "file": "app/models.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0011"
+        },
+        {
+          "start_line": 18,
+          "end_line": 18,
+          "function": "User",
+          "cwe_id": "CWE-312",
+          "cwe_name": "Cleartext Storage of Sensitive Information",
+          "severity": "Medium",
+          "confidence": "Medium",
+          "description": "The TOTP secret is stored in plaintext in the database, so a database leak lets an attacker generate valid second-factor codes. The password hint is also stored in plaintext.",
+          "vulnerable_snippet": "totp_secret = models.CharField(max_length=100, null=True)",
+          "file": "app/models.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0012"
+        }
+      ],
+      "model_id": "claude-sonnet-5-5",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:07:28.886851+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/models.py",
+      "raw_path": "raw/app/models.py/1794082064757887000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0010",
+          "F0011"
+        ],
+        "edits": [
+          {
+            "start_line": 2,
+            "end_line": 2,
+            "replacement": "import secrets\nfrom django.contrib.auth.hashers import make_password"
+          },
+          {
+            "start_line": 26,
+            "end_line": 29,
+            "replacement": "    # Random, unguessable initial password; the user must set a real one later\n    password = secrets.token_urlsafe(32)\n    dateCreated = moment.now().format(\"YYYY-MM-DD hh:mm:ss\")\n    lastLogin = None\n    return User(userName, make_password(password), None, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)"
+          }
+        ],
+        "explanation": "The initial password is now a random value from secrets instead of the username. The password hint no longer echoes the username and is set to None, which the field allows. Hashing now uses Django's make_password, which is salted PBKDF2 by default, instead of unsalted MD5. The resulting hash is about 88 characters and fits in the 100-character column. The now-unused hashlib import was replaced by the secrets and make_password imports.",
+        "review_notes": "Login and password-reset code is not visible here. If it compares MD5 digests, switch it to check_password, or keep a temporary fallback for legacy MD5 hashes. Confirm that the registration flow sets a real password after create() is called, because the initial password is now unknown to everyone. F0012 is not addressed. Encrypting the TOTP secret and password hint at rest needs key management and a field-level encryption library, which is outside a minimal patch to this file. Also check that any existing code reading password_hint handles None."
+      },
+      "candidate_path": "candidates/app/models.py",
+      "diff_path": "diffs/app/models.py.diff",
+      "candidate_sha256": "a672be92a7db6fd26552cc604405506928a3949fb314b2b7d0e157ea557f3d45",
+      "syntax_check": "passed"
+    },
+    "app/views/blabController.py": {
+      "file": "app/views/blabController.py",
+      "source_sha256": "990cfd856e79f048a2aa5147dc44d548090bc74b35f31749b45f78598c765eec",
+      "findings": [
+        {
+          "start_line": 51,
+          "end_line": 51,
+          "function": "feed",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The session username is interpolated into the SQL string with % formatting instead of a parameterized query. A username containing SQL metacharacters (e.g. set at registration) alters the query.",
+          "vulnerable_snippet": "cursor.execute(blabsForMe % (username,))",
+          "file": "app/views/blabController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0013"
+        },
+        {
+          "start_line": 75,
+          "end_line": 75,
+          "function": "feed",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The username is formatted directly into the SQL query string, allowing SQL injection.",
+          "vulnerable_snippet": "cursor.execute(sqlBlabsByMe % (username,))",
+          "file": "app/views/blabController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0014"
+        },
+        {
+          "start_line": 120,
+          "end_line": 120,
+          "function": "feed",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The user-supplied POST parameter 'blab' is concatenated into an INSERT statement without parameterization, allowing SQL injection.",
+          "vulnerable_snippet": "cursor.execute(addBlabSql % (username, blab))",
+          "file": "app/views/blabController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0015"
+        },
+        {
+          "start_line": 161,
+          "end_line": 162,
+          "function": "morefeed",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The username is interpolated into the SQL string. The int() validation failure is not handled (redirect result is discarded), so execution continues. The injection is via the username.",
+          "vulnerable_snippet": "blabsForMe = sqlBlabsForMe.format(len, cnt)\n            cursor.execute(blabsForMe % (username,))",
+          "file": "app/views/blabController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0016"
+        },
+        {
+          "start_line": 166,
+          "end_line": 167,
+          "function": "morefeed",
+          "cwe_id": "CWE-79",
+          "cwe_name": "Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
+          "severity": "Medium",
+          "confidence": "High",
+          "description": "Blab content and names from the database (user-controlled) are inserted into an HTML template and returned in an HttpResponse without escaping, causing stored XSS.",
+          "vulnerable_snippet": "ret += template.format(username = blab[0], content = blab[2], blab_name = blab[1],",
+          "file": "app/views/blabController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0017"
+        },
+        {
+          "start_line": 201,
+          "end_line": 201,
+          "function": "blab",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The blabid GET parameter is formatted directly into the SQL query, allowing SQL injection.",
+          "vulnerable_snippet": "cursor.execute(blabDetailsSql % (blabid,))",
+          "file": "app/views/blabController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0018"
+        },
+        {
+          "start_line": 211,
+          "end_line": 211,
+          "function": "blab",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The blabid GET parameter is formatted directly into the comments query, allowing SQL injection.",
+          "vulnerable_snippet": "cursor.execute(blabCommentsSql % (blabid,))",
+          "file": "app/views/blabController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0019"
+        },
+        {
+          "start_line": 257,
+          "end_line": 257,
+          "function": "blab",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The POST parameters comment and blabid are concatenated into an INSERT statement without parameterization, allowing SQL injection.",
+          "vulnerable_snippet": "cursor.execute(addCommentSql % (blabid, username, comment, moment.now().format(\"YYYY-MM-DD hh:mm:ss\")))",
+          "file": "app/views/blabController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0020"
+        },
+        {
+          "start_line": 262,
+          "end_line": 262,
+          "function": "blab",
+          "cwe_id": "CWE-601",
+          "cwe_name": "URL Redirection to Untrusted Site ('Open Redirect')",
+          "severity": "Low",
+          "confidence": "Low",
+          "description": "The user-supplied blabid is appended to the redirect URL without validation. Because it follows a relative path, exploitation is limited, but unvalidated input still controls the redirect target (including query injection and CRLF-style manipulation).",
+          "vulnerable_snippet": "response = redirect(\"/blab?blabid=\" + blabid)",
+          "file": "app/views/blabController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0021"
+        },
+        {
+          "start_line": 292,
+          "end_line": 300,
+          "function": "blabbers",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'sort' GET parameter is concatenated directly into the ORDER BY clause, and the username is also interpolated. An attacker can inject arbitrary SQL.",
+          "vulnerable_snippet": "\" ORDER BY \" + sort + \";\")  ...  cursor.execute(blabbersSql % (username, username))",
+          "file": "app/views/blabController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0022"
+        },
+        {
+          "start_line": 347,
+          "end_line": 348,
+          "function": "blabbers",
+          "cwe_id": "CWE-95",
+          "cwe_name": "Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The user-supplied POST parameter 'command' is transformed and passed to eval(), allowing arbitrary Python code execution on the server.",
+          "vulnerable_snippet": "module = command.capitalize()[:-1] + \"Command\"\n                cmdClass = eval(module)",
+          "file": "app/views/blabController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0023"
+        },
+        {
+          "start_line": 272,
+          "end_line": 272,
+          "function": "blabbers",
+          "cwe_id": "CWE-352",
+          "cwe_name": "Cross-Site Request Forgery (CSRF)",
+          "severity": "Medium",
+          "confidence": "High",
+          "description": "The state-changing POST handler (listen/ignore actions) is decorated with csrf_exempt, disabling CSRF protection.",
+          "vulnerable_snippet": "@csrf_exempt\ndef blabbers(request):",
+          "file": "app/views/blabController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0024"
+        }
+      ],
+      "model_id": "claude-sonnet-5-5",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:07:44.769664+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "invalid_proposal",
+      "original_path": "original/app/views/blabController.py",
+      "raw_path": "raw/app/views/blabController.py/1794082096222662000.txt",
+      "syntax_check": "rejected",
+      "error": "Response structure, edit ranges, or Python syntax failed validation; inspect raw response."
+    },
+    "app/views/homeController.py": {
+      "file": "app/views/homeController.py",
+      "source_sha256": "28e620512a963d428a7f5dc29d409947727bfa0cf08bc631fa13aa37907f37d8",
+      "findings": [
+        {
+          "start_line": 13,
+          "end_line": 16,
+          "function": "home",
+          "cwe_id": "CWE-918",
+          "cwe_name": "Server-Side Request Forgery (SSRF)",
+          "severity": "Medium",
+          "confidence": "Medium",
+          "description": "The attacker-controlled HTTP Host header is used to build a URL that the server requests with urllib.request.urlopen. An attacker can make the server send requests to arbitrary internal or external hosts (blind SSRF), for example by sending a crafted Host header.",
+          "vulnerable_snippet": "host_ip = request.META['HTTP_HOST'].split(':')[0]\n            print(\"da\")\n            redir = urllib.request.Request('http://' + host_ip + ':' + request.META['SERVER_PORT'] + '/feed')\n            urllib.request.urlopen(redir, timeout=5)",
+          "file": "app/views/homeController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0025"
+        }
+      ],
+      "model_id": "claude-sonnet-5-5",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:08:16.228144+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/views/homeController.py",
+      "raw_path": "raw/app/views/homeController.py/1794082099924944000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0025"
+        ],
+        "edits": [
+          {
+            "start_line": 10,
+            "end_line": 21,
+            "replacement": "    if request.session.get('username'):\n        return redirect('feed')"
+          }
+        ],
+        "explanation": "The view built a URL from the attacker-controlled Host header and fetched it server-side with urllib.request.urlopen, which is a blind SSRF. The request's result was never used. The except branch always ended in redirect('feed'), and a successful fetch fell through to login(request). I removed the outbound request and redirect to the 'feed' view directly for logged-in users. This is the evident intended behavior, and it no longer makes any server-side request.",
+        "review_notes": "One behavior difference: before, if the self-request succeeded (no exception), a logged-in user fell through to login(request). That looks like a bug, since the comment says logged-in users go to the feed. Confirm that redirecting them to the feed is the intended behavior. The now-unused 'import urllib' on line 5 is harmless and can be removed. The debug print statements were removed with the block. Also check that the 'feed' URL name exists."
+      },
+      "candidate_path": "candidates/app/views/homeController.py",
+      "diff_path": "diffs/app/views/homeController.py.diff",
+      "candidate_sha256": "d4068f7dbdbf27b7ebf0db7487be495cc96b3de85441e94de762d7142446cfea",
+      "syntax_check": "passed"
+    },
+    "app/views/resetController.py": {
+      "file": "app/views/resetController.py",
+      "source_sha256": "e2c36196b23f143b9b1697b732325a93e39ad4995a023f6831304344c2afc5d0",
+      "findings": [
+        {
+          "start_line": 63,
+          "end_line": 63,
+          "function": "reset",
+          "cwe_id": "CWE-295",
+          "cwe_name": "Improper Certificate Validation",
+          "severity": "Medium",
+          "confidence": "High",
+          "description": "The httplib2 client is created with disable_ssl_certificate_validation=True, so TLS certificates are not verified. This allows man-in-the-middle attacks on outbound requests.",
+          "vulnerable_snippet": "h = httplib2.Http(\".cache\", disable_ssl_certificate_validation=True) #CWE-295",
+          "file": "app/views/resetController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0026"
+        },
+        {
+          "start_line": 64,
+          "end_line": 64,
+          "function": "reset",
+          "cwe_id": "CWE-798",
+          "cwe_name": "Use of Hard-coded Credentials",
+          "severity": "Medium",
+          "confidence": "High",
+          "description": "Credentials are hard-coded in the source and passed to the HTTP client. Anyone with access to the code can recover them.",
+          "vulnerable_snippet": "h.add_credentials('thiswaskevinsidea','hardcode') #CWE-798",
+          "file": "app/views/resetController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0027"
+        },
+        {
+          "start_line": 74,
+          "end_line": 88,
+          "function": "processReset",
+          "cwe_id": "CWE-352",
+          "cwe_name": "Cross-Site Request Forgery (CSRF)",
+          "severity": "Medium",
+          "confidence": "Low",
+          "description": "A destructive, state-changing database flush runs on a POST with only a 'confirm' parameter. There is no authentication, authorization or CSRF token check in the code shown, so any visitor or a cross-site request can wipe the database.",
+          "vulnerable_snippet": "subprocess.run([\"python3\",manage,\"flush\",\"--noinput\"], check=True)",
+          "file": "app/views/resetController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0028"
+        },
+        {
+          "start_line": 97,
+          "end_line": 103,
+          "function": "processReset",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Low",
+          "confidence": "Low",
+          "description": "SQL statements are built by string formatting with '%' on user attributes and executed. The values come from hard-coded data, so it is not currently exploitable, but the pattern is unsafe.",
+          "vulnerable_snippet": "cursor.execute(usersStatement % (user.username, user.password, user.password_hint, user.totp_secret, user.created_at,\n                                                     user.last_login, user.real_name, user.blab_name))",
+          "file": "app/views/resetController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0029"
+        }
+      ],
+      "model_id": "claude-sonnet-5-5",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:08:19.934567+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/views/resetController.py",
+      "raw_path": "raw/app/views/resetController.py/1794082110484942000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0026",
+          "F0027",
+          "F0029"
+        ],
+        "edits": [
+          {
+            "start_line": 63,
+            "end_line": 64,
+            "replacement": "        h = httplib2.Http(\".cache\")\n        _user = os.environ.get(\"RESET_HTTP_USER\")\n        _pass = os.environ.get(\"RESET_HTTP_PASSWORD\")\n        if _user and _pass:\n            h.add_credentials(_user, _pass)"
+          },
+          {
+            "start_line": 97,
+            "end_line": 97,
+            "replacement": "                usersStatement = \"INSERT INTO users (username, password, password_hint, totp_secret, created_at, last_login, real_name, blab_name) values (%s, %s, %s, %s, %s, %s, %s, %s);\""
+          },
+          {
+            "start_line": 102,
+            "end_line": 103,
+            "replacement": "                    cursor.execute(usersStatement, (user.username, user.password, user.password_hint, user.totp_secret, user.created_at,\n                                                     user.last_login, user.real_name, user.blab_name))"
+          },
+          {
+            "start_line": 108,
+            "end_line": 108,
+            "replacement": "                listenersStatement = \"INSERT INTO listeners (blabber, listener, status) values (%s, %s, 'Active');\""
+          },
+          {
+            "start_line": 116,
+            "end_line": 116,
+            "replacement": "                            cursor.execute(listenersStatement, (blabber.username, listener.username))"
+          }
+        ],
+        "explanation": "Removed disable_ssl_certificate_validation so httplib2 verifies TLS certificates (F0026). Removed the hard-coded credentials; they are now read from the RESET_HTTP_USER and RESET_HTTP_PASSWORD environment variables and only added if both are set (F0027). Converted the string-formatted user INSERT to a parameterized query using the Django cursor's %s placeholders with a params tuple (F0029). Applied the same change to the listeners INSERT, which had the same pattern.",
+        "review_notes": "F0028 (CSRF) is not addressed. Django's CsrfViewMiddleware protects POST views by default, and I could not see settings.py or the template to confirm it is enabled and that reset.html includes {% csrf_token %}. Adding authentication to the reset endpoint is a product decision, so I left it alone. Check both. The credentials that were hard-coded should be treated as compromised and rotated. The else branch of reset() still returns a tuple rather than an HttpResponse, which is a pre-existing bug I did not change. The parameterized INSERTs rely on the Django sqlite backend translating %s to ?, so confirm they run correctly."
+      },
+      "candidate_path": "candidates/app/views/resetController.py",
+      "diff_path": "diffs/app/views/resetController.py.diff",
+      "candidate_sha256": "c1a22f3f5c48c70fa071389720914ad2bb32af32ee86e3bd63385618f79ff1d4",
+      "syntax_check": "passed"
+    },
+    "app/views/toolsController.py": {
+      "file": "app/views/toolsController.py",
+      "source_sha256": "4b8b282dc966bbb61410d184fd141c7f88afdeec7237ab730dae37d17cc76d7b",
+      "findings": [
+        {
+          "start_line": 68,
+          "end_line": 68,
+          "function": "fortune",
+          "cwe_id": "CWE-78",
+          "cwe_name": "Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The user-controlled POST parameter 'fortunefile' is interpolated into a shell command passed to os.system without sanitization. An attacker can inject shell metacharacters (e.g. `; rm -rf /`) to execute arbitrary commands, or read arbitrary files.",
+          "vulnerable_snippet": "os.system(f'cat {file}')",
+          "file": "app/views/toolsController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0030"
+        },
+        {
+          "start_line": 43,
+          "end_line": 43,
+          "function": "ping",
+          "cwe_id": "CWE-88",
+          "cwe_name": "Improper Neutralization of Argument Delimiters in a Command ('Argument Injection')",
+          "severity": "Medium",
+          "confidence": "Medium",
+          "description": "The user-supplied 'host' value is passed as a positional argument to ping with no validation. Although no shell is used, a value beginning with '-' can be interpreted as an option by ping, enabling argument injection.",
+          "vulnerable_snippet": "p = subprocess.Popen(['ping', '-c', '1', host], stdout=subprocess.PIPE, stderr=subprocess.PIPE)",
+          "file": "app/views/toolsController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0031"
+        }
+      ],
+      "model_id": "claude-sonnet-5-5",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:08:30.491254+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/app/views/toolsController.py",
+      "raw_path": "raw/app/views/toolsController.py/1794082115292982000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0030",
+          "F0031"
+        ],
+        "edits": [
+          {
+            "start_line": 43,
+            "end_line": 43,
+            "replacement": "        if host.startswith('-') or any(c.isspace() for c in host):\n            raise ValueError('Invalid host')\n        p = subprocess.Popen(['ping', '-c', '1', '--', host], stdout=subprocess.PIPE, stderr=subprocess.PIPE)"
+          },
+          {
+            "start_line": 66,
+            "end_line": 68,
+            "replacement": "    else:\n        logger.warning(\"Rejected unknown fortune selection\")\n        return \"\""
+          }
+        ],
+        "explanation": "In fortune(), the os.system call with user input is removed. Only the allowed selections ('fortunes' and 'riddles') are handled, and any other value returns an empty string, which also avoids returning None. In ping(), hosts that start with '-' or contain whitespace are rejected. A '--' separator is added so ping treats the host as a positional argument. The rejection raises inside the existing try block, so it takes the existing error path and returns the 'unknown host' output.",
+        "review_notes": "The fix removes the arbitrary-file `cat` fallback; if any legitimate feature relied on it, add an explicit allowlist mapping of names to files. Check that the '--' separator works with the target platform's ping implementation. The existing logger.info(\"Exit Code:\", ...) and logger.error(\"Error\", e) calls are incorrectly formatted logging calls and were left unchanged because they are outside the findings. Nothing was run or tested."
+      },
+      "candidate_path": "candidates/app/views/toolsController.py",
+      "diff_path": "diffs/app/views/toolsController.py.diff",
+      "candidate_sha256": "fb4d1a225216c79f764617078d3180ac47b3d07a66de9f134a7bcbf7e8e8db7c",
+      "syntax_check": "passed"
+    },
+    "app/views/userController.py": {
+      "file": "app/views/userController.py",
+      "source_sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847",
+      "findings": [
+        {
+          "start_line": 68,
+          "end_line": 69,
+          "function": "login",
+          "cwe_id": "CWE-502",
+          "cwe_name": "Deserialization of Untrusted Data",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'user' cookie is attacker-controlled. It is base64-decoded and passed to pickle.loads, which allows arbitrary code execution through a crafted pickle payload.",
+          "vulnerable_snippet": "decoded = base64.b64decode(userDetailsCookie)\n            unencodedUserDetails = pickle.loads(decoded)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0032"
+        },
+        {
+          "start_line": 103,
+          "end_line": 111,
+          "function": "login",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The POST 'user' parameter is concatenated directly into the SQL query, which allows authentication bypass and data extraction.",
+          "vulnerable_snippet": "sqlQuery = \"select username, password, password_hint, created_at, last_login, \\\n                            real_name, blab_name from users where username='\" + username + \"' \\\n                            and password='\" + hashlib.md5(password.encode('utf-8')).hexdigest() + \"';\"",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0033"
+        },
+        {
+          "start_line": 138,
+          "end_line": 139,
+          "function": "login",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Medium",
+          "confidence": "Medium",
+          "description": "The UPDATE statement concatenates a username value read from the database into SQL. That value can be attacker-influenced (second-order injection), for example through a username stored at registration.",
+          "vulnerable_snippet": "update = \"UPDATE users SET last_login=datetime('now') WHERE username='\" + row['username'] + \"';\"\n                    cursor.execute(update)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0034"
+        },
+        {
+          "start_line": 184,
+          "end_line": 186,
+          "function": "showPasswordHint",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The GET 'username' parameter is concatenated into the SQL query without sanitization.",
+          "vulnerable_snippet": "sql = \"SELECT password_hint FROM users WHERE username = '\" + username + \"'\"\n            logger.info(sql)\n            cursor.execute(sql)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0035"
+        },
+        {
+          "start_line": 225,
+          "end_line": 227,
+          "function": "showTotp",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Medium",
+          "confidence": "Medium",
+          "description": "The username from the session is concatenated into the SQL query. It originates from a database row, but the stored username can contain injected SQL.",
+          "vulnerable_snippet": "sql = \"SELECT totp_secret FROM users WHERE username = '\" + username + \"'\"\n            logger.info(sql)\n            cursor.execute(sql)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0036"
+        },
+        {
+          "start_line": 259,
+          "end_line": 261,
+          "function": "processTotp",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Medium",
+          "confidence": "Medium",
+          "description": "The username from the session is concatenated into the SQL query without parameterization.",
+          "vulnerable_snippet": "sql = \"SELECT totp_secret FROM users WHERE username = '\" + username + \"'\"\n            logger.info(sql)\n            cursor.execute(sql)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0037"
+        },
+        {
+          "start_line": 341,
+          "end_line": 342,
+          "function": "processRegister",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The POST 'username' is concatenated into the SQL query during registration.",
+          "vulnerable_snippet": "sqlQuery = \"SELECT username FROM users WHERE username = '\" + username + \"'\"\n            cursor.execute(sqlQuery)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0038"
+        },
+        {
+          "start_line": 42,
+          "end_line": 43,
+          "function": "login",
+          "cwe_id": "CWE-601",
+          "cwe_name": "URL Redirection to Untrusted Site ('Open Redirect')",
+          "severity": "Medium",
+          "confidence": "High",
+          "description": "The 'target' GET parameter is passed to redirect() without validation, so an attacker can send users to an arbitrary external site. The POST handler has the same flaw at lines 91-93, and lines 75-76 repeat it for the remembered-user path.",
+          "vulnerable_snippet": "if (target != None) and (target) and (not target == \"null\"):\n                return redirect(target)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0039"
+        },
+        {
+          "start_line": 154,
+          "end_line": 161,
+          "function": "login",
+          "cwe_id": "CWE-79",
+          "cwe_name": "Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
+          "severity": "Medium",
+          "confidence": "Medium",
+          "description": "The user-supplied username is reflected in the error message that is rendered in the login template. XSS is possible if the template does not escape it.",
+          "vulnerable_snippet": "request.error = \"Login failed for \" + username + \". Please try again.\"",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0040"
+        },
+        {
+          "start_line": 57,
+          "end_line": 57,
+          "function": "login",
+          "cwe_id": "CWE-117",
+          "cwe_name": "Improper Output Neutralization for Logs",
+          "severity": "Low",
+          "confidence": "High",
+          "description": "User-controlled username and target values are written to the log without sanitization, which allows log forging. The same issue appears at line 89 and elsewhere.",
+          "vulnerable_snippet": "logger.info(\"Entering login with username \" + username + \" and target \" + target)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0041"
+        },
+        {
+          "start_line": 125,
+          "end_line": 129,
+          "function": "login",
+          "cwe_id": "CWE-326",
+          "cwe_name": "Inadequate Encryption Strength",
+          "severity": "Medium",
+          "confidence": "Medium",
+          "description": "A 1024-bit RSA key is generated, which is below the recommended strength. The key object is also set as a cookie, which exposes it to the client. The full user row is logged as well.",
+          "vulnerable_snippet": "private_key = rsa.generate_private_key(\n                        public_exponent=65537, key_size=1024,) #CWE-326\n                    response.set_cookie('password', private_key)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0042"
+        },
+        {
+          "start_line": 105,
+          "end_line": 105,
+          "function": "login",
+          "cwe_id": "CWE-328",
+          "cwe_name": "Use of Weak Hash",
+          "severity": "Medium",
+          "confidence": "High",
+          "description": "Passwords are hashed with unsalted MD5, which is fast to brute-force and vulnerable to rainbow tables.",
+          "vulnerable_snippet": "hashlib.md5(password.encode('utf-8')).hexdigest()",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0043"
+        },
+        {
+          "start_line": 192,
+          "end_line": 199,
+          "function": "showPasswordHint",
+          "cwe_id": "CWE-200",
+          "cwe_name": "Exposure of Sensitive Information to an Unauthorized Actor",
+          "severity": "Medium",
+          "confidence": "Medium",
+          "description": "The unauthenticated endpoint returns part of the stored password hint for any username and logs it, which discloses sensitive information.",
+          "vulnerable_snippet": "hint = formatString.format(password[:2] + (\"*\" * (len(password) - 2)))\n                return HttpResponse(hint)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0044"
+        },
+        {
+          "start_line": 354,
+          "end_line": 354,
+          "function": "processRegister",
+          "cwe_id": "CWE-532",
+          "cwe_name": "Insertion of Sensitive Information into Log File",
+          "severity": "Medium",
+          "confidence": "High",
+          "description": "The generated plaintext password is written to the application log.",
+          "vulnerable_snippet": "logger.info(\"Random password: \" + rand_pass + \", Verified: \" + verified)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0045"
+        },
+        {
+          "start_line": 315,
+          "end_line": 316,
+          "function": "register",
+          "cwe_id": "CWE-352",
+          "cwe_name": "Cross-Site Request Forgery (CSRF)",
+          "severity": "Medium",
+          "confidence": "Medium",
+          "description": "CSRF protection is disabled on state-changing endpoints (register, registerFinish, totp) with @csrf_exempt.",
+          "vulnerable_snippet": "@csrf_exempt\ndef register(request):",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0046"
+        },
+        {
+          "start_line": 410,
+          "end_line": 420,
+          "function": "register_finish",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The INSERT statement is built by concatenating username, password, realName and blabName from user input and executed directly, allowing SQL injection.",
+          "vulnerable_snippet": "query += (\"'\" + username + \"',\")\n...\ncursor.execute(query)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0047"
+        },
+        {
+          "start_line": 412,
+          "end_line": 413,
+          "function": "register_finish",
+          "cwe_id": "CWE-327",
+          "cwe_name": "Use of a Broken or Risky Cryptographic Algorithm",
+          "severity": "High",
+          "confidence": "High",
+          "description": "Passwords are hashed with unsalted MD5, which is fast and easily cracked.",
+          "vulnerable_snippet": "query += (\"'\" + hashlib.md5(password.encode('utf-8')).hexdigest() + \"',\")",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0048"
+        },
+        {
+          "start_line": 413,
+          "end_line": 413,
+          "function": "register_finish",
+          "cwe_id": "CWE-256",
+          "cwe_name": "Plaintext Storage of a Password",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The plaintext password is stored in the database in the password_hint column.",
+          "vulnerable_snippet": "query += (\"'\" + password + \"',\")",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0049"
+        },
+        {
+          "start_line": 437,
+          "end_line": 437,
+          "function": "register_finish",
+          "cwe_id": "CWE-601",
+          "cwe_name": "URL Redirection to Untrusted Site ('Open Redirect')",
+          "severity": "Low",
+          "confidence": "Low",
+          "description": "The user-controlled username is concatenated into the redirect URL without encoding, allowing parameter injection into the query string.",
+          "vulnerable_snippet": "return redirect('/login?username=' + username)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0050"
+        },
+        {
+          "start_line": 494,
+          "end_line": 494,
+          "function": "showProfile",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The session username is interpolated into the SQL string with % formatting, not parameterized. The username can be attacker-controlled at registration or profile rename.",
+          "vulnerable_snippet": "cursor.execute(sqlMyHecklers % username)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0051"
+        },
+        {
+          "start_line": 511,
+          "end_line": 513,
+          "function": "showProfile",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The username is concatenated into a SQL query for users_history without parameterization.",
+          "vulnerable_snippet": "sqlMyEvents = \"select event from users_history where blabber=\\\"\" + username + \"\\\" ORDER BY eventid DESC; \"\ncursor.execute(sqlMyEvents)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0052"
+        },
+        {
+          "start_line": 521,
+          "end_line": 523,
+          "function": "showProfile",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The username is concatenated directly into a SELECT query.",
+          "vulnerable_snippet": "sql = \"SELECT username, real_name, blab_name, totp_secret FROM users WHERE username = '\" + username + \"'\"\ncursor.execute(sql)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0053"
+        },
+        {
+          "start_line": 559,
+          "end_line": 560,
+          "function": "processProfile",
+          "cwe_id": "CWE-79",
+          "cwe_name": "Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
+          "severity": "Medium",
+          "confidence": "Medium",
+          "description": "User-supplied realName, blabName and username are embedded into a script-containing HTML message returned to the client, which renders it as HTML or script.",
+          "vulnerable_snippet": "msg = f\"<script>alert('Successfully changed values!\\\\nusername: {username.lower()}\\\\nReal Name: {realName}\\\\nBlab Name: {blabName}');</script>\"",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0054"
+        },
+        {
+          "start_line": 584,
+          "end_line": 586,
+          "function": "processProfile",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "realName and blabName from POST data are formatted into the UPDATE statement with % interpolation, not bound parameters.",
+          "vulnerable_snippet": "update = \"UPDATE users SET real_name='%s', blab_name='%s' WHERE username='%s';\"\ncursor.execute(update % (realName,blabName,sessionUsername))",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0055"
+        },
+        {
+          "start_line": 630,
+          "end_line": 633,
+          "function": "processProfile",
+          "cwe_id": "CWE-502",
+          "cwe_name": "Deserialization of Untrusted Data",
+          "severity": "Critical",
+          "confidence": "High",
+          "description": "The 'user' cookie is attacker-controlled, base64-decoded and passed to pickle.loads, enabling arbitrary code execution.",
+          "vulnerable_snippet": "decoded = base64.b64decode(userDetailsCookie)\nunencodedUserDetails = pickle.loads(decoded)",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0056"
+        },
+        {
+          "start_line": 648,
+          "end_line": 648,
+          "function": "processProfile",
+          "cwe_id": "CWE-22",
+          "cwe_name": "Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')",
+          "severity": "High",
+          "confidence": "Medium",
+          "description": "The profile image path is derived from the user-controlled username, which can contain path traversal sequences, and is used in os.remove and file writes.",
+          "vulnerable_snippet": "path = imageDir + '/' + username + '.png'\n...\nwith open(path, 'wb') as destination:",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0057"
+        },
+        {
+          "start_line": 696,
+          "end_line": 702,
+          "function": "downloadImage",
+          "cwe_id": "CWE-22",
+          "cwe_name": "Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The 'image' GET parameter is appended to the image directory without sanitization, allowing ../ traversal to read arbitrary files.",
+          "vulnerable_snippet": "path = f + \"/\" + imageName\n...\nwith open(path, 'rb') as file:",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0058"
+        },
+        {
+          "start_line": 732,
+          "end_line": 733,
+          "function": "usernameExists",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The username is interpolated into the SQL query via string formatting rather than parameter binding.",
+          "vulnerable_snippet": "cursor.execute(sqlStatement % (username,))",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0059"
+        },
+        {
+          "start_line": 773,
+          "end_line": 774,
+          "function": "updateUsername",
+          "cwe_id": "CWE-89",
+          "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The new and old usernames are formatted into multiple UPDATE statements without parameterization.",
+          "vulnerable_snippet": "cursor.execute(query % (newUsername,oldUsername))",
+          "file": "app/views/userController.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0060"
+        }
+      ],
+      "model_id": "claude-sonnet-5-5",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:08:35.297129+00:00",
+          "status": "request_error",
+          "error": "Empty patch response"
+        },
+        {
+          "attempt": 2,
+          "at_utc": "2026-11-07T20:09:17.210947+00:00",
+          "status": "request_error",
+          "error": "Empty patch response"
+        },
+        {
+          "attempt": 3,
+          "at_utc": "2026-11-07T20:10:01.279867+00:00",
+          "status": "request_error",
+          "error": "Empty patch response"
+        },
+        {
+          "attempt": 4,
+          "at_utc": "2026-11-07T20:10:56.066771+00:00",
+          "status": "request_error",
+          "error": "Empty patch response"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "api_error",
+      "original_path": "original/app/views/userController.py",
+      "raw_path": "raw/app/views/userController.py/1794082290448969000.txt"
+    },
+    "verademo-python/settings.py": {
+      "file": "verademo-python/settings.py",
+      "source_sha256": "f262ef46b6b72534ede7262e4fd09f04bc31fa7cd7a10e203b2da9e14477635e",
+      "findings": [
+        {
+          "start_line": 24,
+          "end_line": 24,
+          "function": "",
+          "cwe_id": "CWE-798",
+          "cwe_name": "Use of Hard-coded Credentials",
+          "severity": "High",
+          "confidence": "High",
+          "description": "The Django SECRET_KEY is hard-coded in source. Anyone with access to the code can forge sessions, signed cookies, and password reset tokens.",
+          "vulnerable_snippet": "SECRET_KEY = 'django-insecure-m(k83)=fpt1d5&(u6_$+3ppc6s7!_(9!vps5f17yqp4=6ei$vv'",
+          "file": "verademo-python/settings.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0061"
+        },
+        {
+          "start_line": 27,
+          "end_line": 27,
+          "function": "",
+          "cwe_id": "CWE-489",
+          "cwe_name": "Active Debug Code",
+          "severity": "Medium",
+          "confidence": "High",
+          "description": "DEBUG is set to True, so detailed error pages leak settings, stack traces, and SQL queries to users.",
+          "vulnerable_snippet": "DEBUG = True",
+          "file": "verademo-python/settings.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0062"
+        },
+        {
+          "start_line": 30,
+          "end_line": 30,
+          "function": "",
+          "cwe_id": "CWE-183",
+          "cwe_name": "Permissive List of Allowed Inputs",
+          "severity": "Low",
+          "confidence": "Medium",
+          "description": "ALLOWED_HOSTS is set to '*', which disables Host header validation. This enables Host header poisoning, for example in password reset links and cache poisoning.",
+          "vulnerable_snippet": "ALLOWED_HOSTS = ['*']",
+          "file": "verademo-python/settings.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0063"
+        },
+        {
+          "start_line": 49,
+          "end_line": 49,
+          "function": "",
+          "cwe_id": "CWE-352",
+          "cwe_name": "Cross-Site Request Forgery (CSRF)",
+          "severity": "High",
+          "confidence": "High",
+          "description": "CsrfViewMiddleware is commented out, so state-changing views have no CSRF protection.",
+          "vulnerable_snippet": "#'django.middleware.csrf.CsrfViewMiddleware',",
+          "file": "verademo-python/settings.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0064"
+        },
+        {
+          "start_line": 46,
+          "end_line": 46,
+          "function": "",
+          "cwe_id": "CWE-693",
+          "cwe_name": "Protection Mechanism Failure",
+          "severity": "Medium",
+          "confidence": "Medium",
+          "description": "SecurityMiddleware is disabled, so HSTS, SSL redirect, nosniff, and the other security headers are not applied.",
+          "vulnerable_snippet": "# 'django.middleware.security.SecurityMiddleware',",
+          "file": "verademo-python/settings.py",
+          "model": "claude",
+          "model_id": "claude-sonnet-5-5",
+          "finding_id": "F0065"
+        }
+      ],
+      "model_id": "claude-sonnet-5-5",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:11:30.457402+00:00",
+          "status": "ok"
+        }
+      ],
+      "verification_status": "pending",
+      "status": "patch_proposed",
+      "original_path": "original/verademo-python/settings.py",
+      "raw_path": "raw/verademo-python/settings.py/1794082300514755000.txt",
+      "proposal": {
+        "status": "patch_proposed",
+        "addressed_finding_ids": [
+          "F0061",
+          "F0062",
+          "F0063",
+          "F0064",
+          "F0065"
+        ],
+        "edits": [
+          {
+            "start_line": 23,
+            "end_line": 30,
+            "replacement": "# SECURITY WARNING: keep the secret key used in production secret!\n# Supplied via environment; if unset, a random per-process key is generated\n# (sessions/signed data will not survive restarts or work across workers).\nfrom django.core.management.utils import get_random_secret_key\nSECRET_KEY = os.environ.get('DJANGO_SECRET_KEY') or get_random_secret_key()\n\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = os.environ.get('DJANGO_DEBUG', '').lower() in ('1', 'true', 'yes')\n\n# Restrict allowed hosts; override with a comma-separated DJANGO_ALLOWED_HOSTS\nALLOWED_HOSTS = [\n    h.strip()\n    for h in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')\n    if h.strip()\n]"
+          },
+          {
+            "start_line": 46,
+            "end_line": 46,
+            "replacement": "    'django.middleware.security.SecurityMiddleware',"
+          },
+          {
+            "start_line": 49,
+            "end_line": 49,
+            "replacement": "    'django.middleware.csrf.CsrfViewMiddleware',"
+          }
+        ],
+        "explanation": "The secret key is now read from DJANGO_SECRET_KEY, with a random per-process fallback instead of a committed key. DEBUG defaults to off and is enabled only through DJANGO_DEBUG. ALLOWED_HOSTS defaults to localhost and 127.0.0.1 and can be set through DJANGO_ALLOWED_HOSTS. SecurityMiddleware and CsrfViewMiddleware are re-enabled.",
+        "review_notes": "Nothing was run or tested. The old SECRET_KEY is in version control, so treat it as compromised and rotate any deployment that used it. Enabling CSRF will reject POSTs from forms that lack {% csrf_token %}, and from AJAX calls that lack the X-CSRFToken header. Check the templates and JS. With DEBUG off, runserver no longer serves static files, so set DJANGO_DEBUG=1 for local development or serve static files separately. Set DJANGO_ALLOWED_HOSTS for the real deployment hostnames. SecurityMiddleware only adds nosniff and similar headers by default. HSTS and SECURE_SSL_REDIRECT still need to be configured explicitly for HTTPS deployments. The DEBUG-level root logger is unchanged."
+      },
+      "candidate_path": "candidates/verademo-python/settings.py",
+      "diff_path": "diffs/verademo-python/settings.py.diff",
+      "candidate_sha256": "10c115177327d67c50e3bdab23020c5603f34623eb483672d9d1ce5705b6e364",
+      "syntax_check": "passed"
+    }
+  },
+  "history": [
+    {
+      "file": "app/admin.py",
+      "at_utc": "2026-11-07T20:07:09.454017+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:07:03.000195+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/admin.py/1794082029451582000.txt"
+    },
+    {
+      "file": "app/commands/IgnoreCommand.py",
+      "at_utc": "2026-11-07T20:07:16.906177+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:07:09.455779+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/commands/IgnoreCommand.py/1794082036898979000.txt"
+    },
+    {
+      "file": "app/commands/ListenCommand.py",
+      "at_utc": "2026-11-07T20:07:24.781176+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:07:16.909792+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/commands/ListenCommand.py/1794082044775987000.txt"
+    },
+    {
+      "file": "app/forms.py",
+      "at_utc": "2026-11-07T20:07:28.883402+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:07:24.784984+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/forms.py/1794082048879629000.txt"
+    },
+    {
+      "file": "app/models.py",
+      "at_utc": "2026-11-07T20:07:44.766294+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:07:28.886851+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/models.py/1794082064757887000.txt"
+    },
+    {
+      "file": "app/views/blabController.py",
+      "at_utc": "2026-11-07T20:08:16.224387+00:00",
+      "status": "invalid_proposal",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:07:44.769664+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/views/blabController.py/1794082096222662000.txt"
+    },
+    {
+      "file": "app/views/homeController.py",
+      "at_utc": "2026-11-07T20:08:19.929822+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:08:16.228144+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/views/homeController.py/1794082099924944000.txt"
+    },
+    {
+      "file": "app/views/resetController.py",
+      "at_utc": "2026-11-07T20:08:30.489058+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:08:19.934567+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/views/resetController.py/1794082110484942000.txt"
+    },
+    {
+      "file": "app/views/toolsController.py",
+      "at_utc": "2026-11-07T20:08:35.294681+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:08:30.491254+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/app/views/toolsController.py/1794082115292982000.txt"
+    },
+    {
+      "file": "app/views/userController.py",
+      "at_utc": "2026-11-07T20:11:30.450482+00:00",
+      "status": "api_error",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:08:35.297129+00:00",
+          "status": "request_error",
+          "error": "Empty patch response"
+        },
+        {
+          "attempt": 2,
+          "at_utc": "2026-11-07T20:09:17.210947+00:00",
+          "status": "request_error",
+          "error": "Empty patch response"
+        },
+        {
+          "attempt": 3,
+          "at_utc": "2026-11-07T20:10:01.279867+00:00",
+          "status": "request_error",
+          "error": "Empty patch response"
+        },
+        {
+          "attempt": 4,
+          "at_utc": "2026-11-07T20:10:56.066771+00:00",
+          "status": "request_error",
+          "error": "Empty patch response"
+        }
+      ],
+      "raw_path": "raw/app/views/userController.py/1794082290448969000.txt"
+    },
+    {
+      "file": "verademo-python/settings.py",
+      "at_utc": "2026-11-07T20:11:40.517534+00:00",
+      "status": "patch_proposed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "at_utc": "2026-11-07T20:11:30.457402+00:00",
+          "status": "ok"
+        }
+      ],
+      "raw_path": "raw/verademo-python/settings.py/1794082300514755000.txt"
+    }
+  ],
+  "last_updated_at_utc": "2026-11-07T20:11:40.520657+00:00",
+  "generation_complete": false
+}

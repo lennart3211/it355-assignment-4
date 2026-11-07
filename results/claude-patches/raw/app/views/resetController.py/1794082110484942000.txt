@@ -1,0 +1,35 @@
+```json
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0026", "F0027", "F0029"],
+  "edits": [
+    {
+      "start_line": 63,
+      "end_line": 64,
+      "replacement": "        h = httplib2.Http(\".cache\")\n        _user = os.environ.get(\"RESET_HTTP_USER\")\n        _pass = os.environ.get(\"RESET_HTTP_PASSWORD\")\n        if _user and _pass:\n            h.add_credentials(_user, _pass)"
+    },
+    {
+      "start_line": 97,
+      "end_line": 97,
+      "replacement": "                usersStatement = \"INSERT INTO users (username, password, password_hint, totp_secret, created_at, last_login, real_name, blab_name) values (%s, %s, %s, %s, %s, %s, %s, %s);\""
+    },
+    {
+      "start_line": 102,
+      "end_line": 103,
+      "replacement": "                    cursor.execute(usersStatement, (user.username, user.password, user.password_hint, user.totp_secret, user.created_at,\n                                                     user.last_login, user.real_name, user.blab_name))"
+    },
+    {
+      "start_line": 108,
+      "end_line": 108,
+      "replacement": "                listenersStatement = \"INSERT INTO listeners (blabber, listener, status) values (%s, %s, 'Active');\""
+    },
+    {
+      "start_line": 116,
+      "end_line": 116,
+      "replacement": "                            cursor.execute(listenersStatement, (blabber.username, listener.username))"
+    }
+  ],
+  "explanation": "Removed disable_ssl_certificate_validation so httplib2 verifies TLS certificates (F0026). Removed the hard-coded credentials; they are now read from the RESET_HTTP_USER and RESET_HTTP_PASSWORD environment variables and only added if both are set (F0027). Converted the string-formatted user INSERT to a parameterized query using the Django cursor's %s placeholders with a params tuple (F0029). Applied the same change to the listeners INSERT, which had the same pattern.",
+  "review_notes": "F0028 (CSRF) is not addressed. Django's CsrfViewMiddleware protects POST views by default, and I could not see settings.py or the template to confirm it is enabled and that reset.html includes {% csrf_token %}. Adding authentication to the reset endpoint is a product decision, so I left it alone. Check both. The credentials that were hard-coded should be treated as compromised and rotated. The else branch of reset() still returns a tuple rather than an HttpResponse, which is a pre-existing bug I did not change. The parameterized INSERTs rely on the Django sqlite backend translating %s to ?, so confirm they run correctly."
+}
+```

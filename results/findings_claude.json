@@ -10,7 +10,8 @@
     "description": "The admin changelist for User lists the 'password' column for every user. If the app's custom User model stores plaintext or weakly hashed passwords, anyone with admin view access, or anyone who can see an admin screen, can read all credentials. Admin-site XSS or shoulder-surfing would expose them as well.",
     "vulnerable_snippet": "list_display = ['username', 'password']",
     "file": "app/admin.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 22,
@@ -23,7 +24,8 @@
     "description": "The DELETE statement is built by string-formatting blabberUsername and self.username directly into the SQL. An attacker who controls either value can inject SQL and alter or delete arbitrary rows.",
     "vulnerable_snippet": "self.cursor.execute(sqlQuery % (blabberUsername, self.username))",
     "file": "app/commands/IgnoreCommand.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 24,
@@ -36,7 +38,8 @@
     "description": "The SELECT query concatenates blabberUsername directly into the SQL string, so it can be injected through that parameter, leading to data disclosure or manipulation.",
     "vulnerable_snippet": "sqlQuery = \"SELECT blab_name FROM users WHERE username = '\" + blabberUsername + \"'\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery)",
     "file": "app/commands/IgnoreCommand.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 29,
@@ -49,7 +52,8 @@
     "description": "The INSERT concatenates self.username and an event string containing blabberUsername and a value read from the database (second-order injection) into the SQL without parameterization.",
     "vulnerable_snippet": "sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (\\\"\" + self.username + \"\\\", \\\"\" + event + \"\\\")\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery)",
     "file": "app/commands/IgnoreCommand.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 22,
@@ -62,7 +66,8 @@
     "description": "The blabberUsername and self.username values are interpolated into the INSERT statement with string formatting rather than bound parameters. An attacker who controls either value can inject arbitrary SQL.",
     "vulnerable_snippet": "self.cursor.execute(sqlQuery % (blabberUsername, self.username))",
     "file": "app/commands/ListenCommand.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 24,
@@ -75,7 +80,8 @@
     "description": "The blabberUsername value is concatenated directly into the SELECT query and then executed, so it is open to SQL injection.",
     "vulnerable_snippet": "sqlQuery = \"SELECT blab_name FROM users WHERE username = '\" + blabberUsername + \"'\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery)",
     "file": "app/commands/ListenCommand.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 29,
@@ -88,7 +94,8 @@
     "description": "The username, blabberUsername, and the blab_name read from the database are concatenated into the INSERT statement. This allows SQL injection, including second-order injection through the stored blab_name.",
     "vulnerable_snippet": "event = self.username + \" started listening to \" + blabberUsername + \" (\" + result[0] + \")\"\n            sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (\\\"\" + self.username + \"\\\", \\\"\" + event + \"\\\")\"\n            self.cursor.execute(sqlQuery)",
     "file": "app/commands/ListenCommand.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 15,
@@ -101,7 +108,8 @@
     "description": "The password and cpassword fields are plain CharFields with no PasswordInput widget. They render as visible text inputs, which exposes the typed password to shoulder surfing and can leave it in browser autofill or history.",
     "vulnerable_snippet": "    password = forms.CharField(max_length=100)\n    cpassword = forms.CharField(max_length=100)",
     "file": "app/forms.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 10,
@@ -114,7 +122,8 @@
     "description": "The ModelForm exposes the model's 'password' field without overriding its widget, so it renders as a visible text input instead of a masked password field.",
     "vulnerable_snippet": "        fields = [\n            'username','password','blab_name','real_name'\n        ]",
     "file": "app/forms.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 26,
@@ -127,7 +136,8 @@
     "description": "A new user's initial password is set to their own username, and the password hint is also the username, so anyone who knows a username can guess the password and log in.",
     "vulnerable_snippet": "password = userName\n    ...\n    return User(userName, hashlib.md5(password.encode('utf-8')).hexdigest(), userName, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)",
     "file": "app/models.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 29,
@@ -140,7 +150,8 @@
     "description": "Passwords are hashed with unsalted MD5, which is fast and easy to crack with rainbow tables or brute force if the database is exposed.",
     "vulnerable_snippet": "hashlib.md5(password.encode('utf-8')).hexdigest()",
     "file": "app/models.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 18,
@@ -153,7 +164,8 @@
     "description": "The TOTP secret is stored in plaintext in the database, so a database leak lets an attacker generate valid second-factor codes. The password hint is also stored in plaintext.",
     "vulnerable_snippet": "totp_secret = models.CharField(max_length=100, null=True)",
     "file": "app/models.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 51,
@@ -166,7 +178,8 @@
     "description": "The session username is interpolated into the SQL string with % formatting instead of a parameterized query. A username containing SQL metacharacters (e.g. set at registration) alters the query.",
     "vulnerable_snippet": "cursor.execute(blabsForMe % (username,))",
     "file": "app/views/blabController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 75,
@@ -179,7 +192,8 @@
     "description": "The username is formatted directly into the SQL query string, allowing SQL injection.",
     "vulnerable_snippet": "cursor.execute(sqlBlabsByMe % (username,))",
     "file": "app/views/blabController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 120,
@@ -192,7 +206,8 @@
     "description": "The user-supplied POST parameter 'blab' is concatenated into an INSERT statement without parameterization, allowing SQL injection.",
     "vulnerable_snippet": "cursor.execute(addBlabSql % (username, blab))",
     "file": "app/views/blabController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 161,
@@ -205,7 +220,8 @@
     "description": "The username is interpolated into the SQL string. The int() validation failure is not handled (redirect result is discarded), so execution continues. The injection is via the username.",
     "vulnerable_snippet": "blabsForMe = sqlBlabsForMe.format(len, cnt)\n            cursor.execute(blabsForMe % (username,))",
     "file": "app/views/blabController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 166,
@@ -218,7 +234,8 @@
     "description": "Blab content and names from the database (user-controlled) are inserted into an HTML template and returned in an HttpResponse without escaping, causing stored XSS.",
     "vulnerable_snippet": "ret += template.format(username = blab[0], content = blab[2], blab_name = blab[1],",
     "file": "app/views/blabController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 201,
@@ -231,7 +248,8 @@
     "description": "The blabid GET parameter is formatted directly into the SQL query, allowing SQL injection.",
     "vulnerable_snippet": "cursor.execute(blabDetailsSql % (blabid,))",
     "file": "app/views/blabController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 211,
@@ -244,7 +262,8 @@
     "description": "The blabid GET parameter is formatted directly into the comments query, allowing SQL injection.",
     "vulnerable_snippet": "cursor.execute(blabCommentsSql % (blabid,))",
     "file": "app/views/blabController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 257,
@@ -257,7 +276,8 @@
     "description": "The POST parameters comment and blabid are concatenated into an INSERT statement without parameterization, allowing SQL injection.",
     "vulnerable_snippet": "cursor.execute(addCommentSql % (blabid, username, comment, moment.now().format(\"YYYY-MM-DD hh:mm:ss\")))",
     "file": "app/views/blabController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 262,
@@ -270,7 +290,8 @@
     "description": "The user-supplied blabid is appended to the redirect URL without validation. Because it follows a relative path, exploitation is limited, but unvalidated input still controls the redirect target (including query injection and CRLF-style manipulation).",
     "vulnerable_snippet": "response = redirect(\"/blab?blabid=\" + blabid)",
     "file": "app/views/blabController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 292,
@@ -283,7 +304,8 @@
     "description": "The 'sort' GET parameter is concatenated directly into the ORDER BY clause, and the username is also interpolated. An attacker can inject arbitrary SQL.",
     "vulnerable_snippet": "\" ORDER BY \" + sort + \";\")  ...  cursor.execute(blabbersSql % (username, username))",
     "file": "app/views/blabController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 347,
@@ -296,7 +318,8 @@
     "description": "The user-supplied POST parameter 'command' is transformed and passed to eval(), allowing arbitrary Python code execution on the server.",
     "vulnerable_snippet": "module = command.capitalize()[:-1] + \"Command\"\n                cmdClass = eval(module)",
     "file": "app/views/blabController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 272,
@@ -309,7 +332,8 @@
     "description": "The state-changing POST handler (listen/ignore actions) is decorated with csrf_exempt, disabling CSRF protection.",
     "vulnerable_snippet": "@csrf_exempt\ndef blabbers(request):",
     "file": "app/views/blabController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 13,
@@ -322,7 +346,8 @@
     "description": "The attacker-controlled HTTP Host header is used to build a URL that the server requests with urllib.request.urlopen. An attacker can make the server send requests to arbitrary internal or external hosts (blind SSRF), for example by sending a crafted Host header.",
     "vulnerable_snippet": "host_ip = request.META['HTTP_HOST'].split(':')[0]\n            print(\"da\")\n            redir = urllib.request.Request('http://' + host_ip + ':' + request.META['SERVER_PORT'] + '/feed')\n            urllib.request.urlopen(redir, timeout=5)",
     "file": "app/views/homeController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 63,
@@ -335,7 +360,8 @@
     "description": "The httplib2 client is created with disable_ssl_certificate_validation=True, so TLS certificates are not verified. This allows man-in-the-middle attacks on outbound requests.",
     "vulnerable_snippet": "h = httplib2.Http(\".cache\", disable_ssl_certificate_validation=True) #CWE-295",
     "file": "app/views/resetController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 64,
@@ -348,7 +374,8 @@
     "description": "Credentials are hard-coded in the source and passed to the HTTP client. Anyone with access to the code can recover them.",
     "vulnerable_snippet": "h.add_credentials('thiswaskevinsidea','hardcode') #CWE-798",
     "file": "app/views/resetController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 74,
@@ -361,7 +388,8 @@
     "description": "A destructive, state-changing database flush runs on a POST with only a 'confirm' parameter. There is no authentication, authorization or CSRF token check in the code shown, so any visitor or a cross-site request can wipe the database.",
     "vulnerable_snippet": "subprocess.run([\"python3\",manage,\"flush\",\"--noinput\"], check=True)",
     "file": "app/views/resetController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 97,
@@ -374,7 +402,8 @@
     "description": "SQL statements are built by string formatting with '%' on user attributes and executed. The values come from hard-coded data, so it is not currently exploitable, but the pattern is unsafe.",
     "vulnerable_snippet": "cursor.execute(usersStatement % (user.username, user.password, user.password_hint, user.totp_secret, user.created_at,\n                                                     user.last_login, user.real_name, user.blab_name))",
     "file": "app/views/resetController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 68,
@@ -387,7 +416,8 @@
     "description": "The user-controlled POST parameter 'fortunefile' is interpolated into a shell command passed to os.system without sanitization. An attacker can inject shell metacharacters (e.g. `; rm -rf /`) to execute arbitrary commands, or read arbitrary files.",
     "vulnerable_snippet": "os.system(f'cat {file}')",
     "file": "app/views/toolsController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 43,
@@ -400,7 +430,8 @@
     "description": "The user-supplied 'host' value is passed as a positional argument to ping with no validation. Although no shell is used, a value beginning with '-' can be interpreted as an option by ping, enabling argument injection.",
     "vulnerable_snippet": "p = subprocess.Popen(['ping', '-c', '1', host], stdout=subprocess.PIPE, stderr=subprocess.PIPE)",
     "file": "app/views/toolsController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 68,
@@ -413,7 +444,8 @@
     "description": "The 'user' cookie is attacker-controlled. It is base64-decoded and passed to pickle.loads, which allows arbitrary code execution through a crafted pickle payload.",
     "vulnerable_snippet": "decoded = base64.b64decode(userDetailsCookie)\n            unencodedUserDetails = pickle.loads(decoded)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 103,
@@ -426,7 +458,8 @@
     "description": "The POST 'user' parameter is concatenated directly into the SQL query, which allows authentication bypass and data extraction.",
     "vulnerable_snippet": "sqlQuery = \"select username, password, password_hint, created_at, last_login, \\\n                            real_name, blab_name from users where username='\" + username + \"' \\\n                            and password='\" + hashlib.md5(password.encode('utf-8')).hexdigest() + \"';\"",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 138,
@@ -439,7 +472,8 @@
     "description": "The UPDATE statement concatenates a username value read from the database into SQL. That value can be attacker-influenced (second-order injection), for example through a username stored at registration.",
     "vulnerable_snippet": "update = \"UPDATE users SET last_login=datetime('now') WHERE username='\" + row['username'] + \"';\"\n                    cursor.execute(update)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 184,
@@ -452,7 +486,8 @@
     "description": "The GET 'username' parameter is concatenated into the SQL query without sanitization.",
     "vulnerable_snippet": "sql = \"SELECT password_hint FROM users WHERE username = '\" + username + \"'\"\n            logger.info(sql)\n            cursor.execute(sql)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 225,
@@ -465,7 +500,8 @@
     "description": "The username from the session is concatenated into the SQL query. It originates from a database row, but the stored username can contain injected SQL.",
     "vulnerable_snippet": "sql = \"SELECT totp_secret FROM users WHERE username = '\" + username + \"'\"\n            logger.info(sql)\n            cursor.execute(sql)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 259,
@@ -478,7 +514,8 @@
     "description": "The username from the session is concatenated into the SQL query without parameterization.",
     "vulnerable_snippet": "sql = \"SELECT totp_secret FROM users WHERE username = '\" + username + \"'\"\n            logger.info(sql)\n            cursor.execute(sql)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 341,
@@ -491,7 +528,8 @@
     "description": "The POST 'username' is concatenated into the SQL query during registration.",
     "vulnerable_snippet": "sqlQuery = \"SELECT username FROM users WHERE username = '\" + username + \"'\"\n            cursor.execute(sqlQuery)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 42,
@@ -504,7 +542,8 @@
     "description": "The 'target' GET parameter is passed to redirect() without validation, so an attacker can send users to an arbitrary external site. The POST handler has the same flaw at lines 91-93, and lines 75-76 repeat it for the remembered-user path.",
     "vulnerable_snippet": "if (target != None) and (target) and (not target == \"null\"):\n                return redirect(target)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 154,
@@ -517,7 +556,8 @@
     "description": "The user-supplied username is reflected in the error message that is rendered in the login template. XSS is possible if the template does not escape it.",
     "vulnerable_snippet": "request.error = \"Login failed for \" + username + \". Please try again.\"",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 57,
@@ -530,7 +570,8 @@
     "description": "User-controlled username and target values are written to the log without sanitization, which allows log forging. The same issue appears at line 89 and elsewhere.",
     "vulnerable_snippet": "logger.info(\"Entering login with username \" + username + \" and target \" + target)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 125,
@@ -543,7 +584,8 @@
     "description": "A 1024-bit RSA key is generated, which is below the recommended strength. The key object is also set as a cookie, which exposes it to the client. The full user row is logged as well.",
     "vulnerable_snippet": "private_key = rsa.generate_private_key(\n                        public_exponent=65537, key_size=1024,) #CWE-326\n                    response.set_cookie('password', private_key)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 105,
@@ -556,7 +598,8 @@
     "description": "Passwords are hashed with unsalted MD5, which is fast to brute-force and vulnerable to rainbow tables.",
     "vulnerable_snippet": "hashlib.md5(password.encode('utf-8')).hexdigest()",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 192,
@@ -569,7 +612,8 @@
     "description": "The unauthenticated endpoint returns part of the stored password hint for any username and logs it, which discloses sensitive information.",
     "vulnerable_snippet": "hint = formatString.format(password[:2] + (\"*\" * (len(password) - 2)))\n                return HttpResponse(hint)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 354,
@@ -582,7 +626,8 @@
     "description": "The generated plaintext password is written to the application log.",
     "vulnerable_snippet": "logger.info(\"Random password: \" + rand_pass + \", Verified: \" + verified)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 315,
@@ -595,7 +640,8 @@
     "description": "CSRF protection is disabled on state-changing endpoints (register, registerFinish, totp) with @csrf_exempt.",
     "vulnerable_snippet": "@csrf_exempt\ndef register(request):",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 410,
@@ -608,7 +654,8 @@
     "description": "The INSERT statement is built by concatenating username, password, realName and blabName from user input and executed directly, allowing SQL injection.",
     "vulnerable_snippet": "query += (\"'\" + username + \"',\")\n...\ncursor.execute(query)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 412,
@@ -621,7 +668,8 @@
     "description": "Passwords are hashed with unsalted MD5, which is fast and easily cracked.",
     "vulnerable_snippet": "query += (\"'\" + hashlib.md5(password.encode('utf-8')).hexdigest() + \"',\")",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 413,
@@ -634,7 +682,8 @@
     "description": "The plaintext password is stored in the database in the password_hint column.",
     "vulnerable_snippet": "query += (\"'\" + password + \"',\")",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 437,
@@ -647,7 +696,8 @@
     "description": "The user-controlled username is concatenated into the redirect URL without encoding, allowing parameter injection into the query string.",
     "vulnerable_snippet": "return redirect('/login?username=' + username)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 494,
@@ -660,7 +710,8 @@
     "description": "The session username is interpolated into the SQL string with % formatting, not parameterized. The username can be attacker-controlled at registration or profile rename.",
     "vulnerable_snippet": "cursor.execute(sqlMyHecklers % username)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 511,
@@ -673,7 +724,8 @@
     "description": "The username is concatenated into a SQL query for users_history without parameterization.",
     "vulnerable_snippet": "sqlMyEvents = \"select event from users_history where blabber=\\\"\" + username + \"\\\" ORDER BY eventid DESC; \"\ncursor.execute(sqlMyEvents)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 521,
@@ -686,7 +738,8 @@
     "description": "The username is concatenated directly into a SELECT query.",
     "vulnerable_snippet": "sql = \"SELECT username, real_name, blab_name, totp_secret FROM users WHERE username = '\" + username + \"'\"\ncursor.execute(sql)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 559,
@@ -699,7 +752,8 @@
     "description": "User-supplied realName, blabName and username are embedded into a script-containing HTML message returned to the client, which renders it as HTML or script.",
     "vulnerable_snippet": "msg = f\"<script>alert('Successfully changed values!\\\\nusername: {username.lower()}\\\\nReal Name: {realName}\\\\nBlab Name: {blabName}');</script>\"",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 584,
@@ -712,7 +766,8 @@
     "description": "realName and blabName from POST data are formatted into the UPDATE statement with % interpolation, not bound parameters.",
     "vulnerable_snippet": "update = \"UPDATE users SET real_name='%s', blab_name='%s' WHERE username='%s';\"\ncursor.execute(update % (realName,blabName,sessionUsername))",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 630,
@@ -725,7 +780,8 @@
     "description": "The 'user' cookie is attacker-controlled, base64-decoded and passed to pickle.loads, enabling arbitrary code execution.",
     "vulnerable_snippet": "decoded = base64.b64decode(userDetailsCookie)\nunencodedUserDetails = pickle.loads(decoded)",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 648,
@@ -738,7 +794,8 @@
     "description": "The profile image path is derived from the user-controlled username, which can contain path traversal sequences, and is used in os.remove and file writes.",
     "vulnerable_snippet": "path = imageDir + '/' + username + '.png'\n...\nwith open(path, 'wb') as destination:",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 696,
@@ -751,7 +808,8 @@
     "description": "The 'image' GET parameter is appended to the image directory without sanitization, allowing ../ traversal to read arbitrary files.",
     "vulnerable_snippet": "path = f + \"/\" + imageName\n...\nwith open(path, 'rb') as file:",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 732,
@@ -764,7 +822,8 @@
     "description": "The username is interpolated into the SQL query via string formatting rather than parameter binding.",
     "vulnerable_snippet": "cursor.execute(sqlStatement % (username,))",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 773,
@@ -777,7 +836,8 @@
     "description": "The new and old usernames are formatted into multiple UPDATE statements without parameterization.",
     "vulnerable_snippet": "cursor.execute(query % (newUsername,oldUsername))",
     "file": "app/views/userController.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 24,
@@ -790,7 +850,8 @@
     "description": "The Django SECRET_KEY is hard-coded in source. Anyone with access to the code can forge sessions, signed cookies, and password reset tokens.",
     "vulnerable_snippet": "SECRET_KEY = 'django-insecure-m(k83)=fpt1d5&(u6_$+3ppc6s7!_(9!vps5f17yqp4=6ei$vv'",
     "file": "verademo-python/settings.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 27,
@@ -803,7 +864,8 @@
     "description": "DEBUG is set to True, so detailed error pages leak settings, stack traces, and SQL queries to users.",
     "vulnerable_snippet": "DEBUG = True",
     "file": "verademo-python/settings.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 30,
@@ -816,7 +878,8 @@
     "description": "ALLOWED_HOSTS is set to '*', which disables Host header validation. This enables Host header poisoning, for example in password reset links and cache poisoning.",
     "vulnerable_snippet": "ALLOWED_HOSTS = ['*']",
     "file": "verademo-python/settings.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 49,
@@ -829,7 +892,8 @@
     "description": "CsrfViewMiddleware is commented out, so state-changing views have no CSRF protection.",
     "vulnerable_snippet": "#'django.middleware.csrf.CsrfViewMiddleware',",
     "file": "verademo-python/settings.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   },
   {
     "start_line": 46,
@@ -842,6 +906,7 @@
     "description": "SecurityMiddleware is disabled, so HSTS, SSL redirect, nosniff, and the other security headers are not applied.",
     "vulnerable_snippet": "# 'django.middleware.security.SecurityMiddleware',",
     "file": "verademo-python/settings.py",
-    "model": "claude"
+    "model": "claude",
+    "model_id": "claude-sonnet-5-5"
   }
 ]

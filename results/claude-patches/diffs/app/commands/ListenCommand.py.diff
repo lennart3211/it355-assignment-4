@@ -1,0 +1,29 @@
+--- a/app/commands/ListenCommand.py
++++ b/app/commands/ListenCommand.py
+@@ -16,20 +16,20 @@
+ 
+     @override
+     def execute(self, blabberUsername):
+-        sqlQuery = "INSERT INTO listeners (blabber, listener, status) values ('%s', '%s', 'Active');"
++        sqlQuery = "INSERT INTO listeners (blabber, listener, status) values (%s, %s, 'Active');"
+         self.logger.info(sqlQuery)
+         try :
+-            self.cursor.execute(sqlQuery % (blabberUsername, self.username))
++            self.cursor.execute(sqlQuery, (blabberUsername, self.username))
+ 
+-            sqlQuery = "SELECT blab_name FROM users WHERE username = '" + blabberUsername + "'"
++            sqlQuery = "SELECT blab_name FROM users WHERE username = %s"
+             self.logger.info(sqlQuery)
+-            self.cursor.execute(sqlQuery)
++            self.cursor.execute(sqlQuery, (blabberUsername,))
+             result = self.cursor.fetchone()
+ 
+             event = self.username + " started listening to " + blabberUsername + " (" + result[0] + ")"
+-            sqlQuery = "INSERT INTO users_history (blabber, event) VALUES (\"" + self.username + "\", \"" + event + "\")"
++            sqlQuery = "INSERT INTO users_history (blabber, event) VALUES (%s, %s)"
+             self.logger.info(sqlQuery)
+-            self.cursor.execute(sqlQuery)
++            self.cursor.execute(sqlQuery, (self.username, event))
+ 
+         except:
+ 

@@ -1,0 +1,18 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0010", "F0011"],
+  "edits": [
+    {
+      "start_line": 2,
+      "end_line": 2,
+      "replacement": "import secrets\nfrom django.contrib.auth.hashers import make_password"
+    },
+    {
+      "start_line": 26,
+      "end_line": 29,
+      "replacement": "    # Random, unguessable initial password; the user must set a real one later\n    password = secrets.token_urlsafe(32)\n    dateCreated = moment.now().format(\"YYYY-MM-DD hh:mm:ss\")\n    lastLogin = None\n    return User(userName, make_password(password), None, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)"
+    }
+  ],
+  "explanation": "The initial password is now a random value from secrets instead of the username. The password hint no longer echoes the username and is set to None, which the field allows. Hashing now uses Django's make_password, which is salted PBKDF2 by default, instead of unsalted MD5. The resulting hash is about 88 characters and fits in the 100-character column. The now-unused hashlib import was replaced by the secrets and make_password imports.", 
+  "review_notes": "Login and password-reset code is not visible here. If it compares MD5 digests, switch it to check_password, or keep a temporary fallback for legacy MD5 hashes. Confirm that the registration flow sets a real password after create() is called, because the initial password is now unknown to everyone. F0012 is not addressed. Encrypting the TOTP secret and password hint at rest needs key management and a field-level encryption library, which is outside a minimal patch to this file. Also check that any existing code reading password_hint handles None."
+}

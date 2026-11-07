@@ -1,0 +1,12 @@
+--- a/app/admin.py
++++ b/app/admin.py
+@@ -4,7 +4,8 @@
+ # Register your models here.
+ @admin.register(User)
+ class UserAdmin(admin.ModelAdmin):
+-    list_display = ['username', 'password']
++    list_display = ['username']
++    exclude = ['password']
+ 
+ 
+ @admin.register(Blab)
