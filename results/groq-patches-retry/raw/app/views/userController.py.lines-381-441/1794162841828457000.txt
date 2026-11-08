@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0032"],
+  "edits": [
+    {
+      "start_line": 409,
+      "end_line": 421,
+      "replacement": "                 # Use parameterized query to avoid SQL injection\n                 query = \"INSERT INTO users (username, password, password_hint, totp_secret, created_at, real_name, blab_name) VALUES (%s, %s, %s, %s, datetime('now'), %s, %s)\"\n                 params = (\n                     username,\n                     hashlib.md5(password.encode('utf-8')).hexdigest(),\n                     password,\n                     pyotp.random_base32(),\n                     realName,\n                     blabName,\n                 )\n                 cursor.execute(query, params)\n                 # No result set is returned for INSERT; fetchone would raise an error\n                 sqlStatement = None"
+    }
+  ],
+  "explanation": "Replaced string concatenation with a parameterized INSERT statement using Django's DB cursor execute API, eliminating the SQL injection risk. The query now passes user-supplied values as parameters, and fetchone is removed because INSERT does not return rows.",
+  "review_notes": "Verify that the database backend accepts %s placeholders (Django's default SQLite backend does). Ensure that any code relying on sqlStatement after the INSERT can handle None. Confirm that password_hint storage logic is intended (currently storing the raw password as hint)."
+}

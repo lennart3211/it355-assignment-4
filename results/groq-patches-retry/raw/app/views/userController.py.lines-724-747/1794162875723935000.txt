@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0036"],
+  "edits": [
+    {
+      "start_line": 732,
+      "end_line": 734,
+      "replacement": "            sqlStatement = \"SELECT username FROM users WHERE username = %s\"\n            cursor.execute(sqlStatement, [username])\n            result = cursor.fetchone()"
+    }
+  ],
+  "explanation": "Replaced string interpolation with a parameterized query using Django's DB cursor execute API, eliminating the SQL injection risk for the username check.",
+  "review_notes": "Verify that the database backend accepts %s placeholders (Django's default paramstyle). Ensure that the surrounding error handling still works and that tests cover both existing and non‑existing usernames."
+}

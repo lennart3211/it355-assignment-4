@@ -1,0 +1,90 @@
+--- a/app/views/userController.py
++++ b/app/views/userController.py
+@@ -39,7 +39,9 @@
+ 
+         if request.session.get('username'):
+             logger.info("User is already logged in - redirecting...")
+-            if (target != None) and (target) and (not target == "null"):
++            # Validate redirect target to prevent open redirect attacks
++            from django.utils.http import url_has_allowed_host_and_scheme
++            if target and url_has_allowed_host_and_scheme(url=target, allowed_hosts=None, require_https=False):
+                 return redirect(target)
+             else:
+                 return redirect('feed')
+@@ -65,12 +67,21 @@
+ 
+         else:
+             logger.info("User details were remembered")
++            # Replace unsafe pickle deserialization with a safe JSON decode
++            import json
+             decoded = base64.b64decode(userDetailsCookie)
+-            unencodedUserDetails = pickle.loads(decoded)
+-
+-            logger.info("User details were retrieved for user: " + unencodedUserDetails.username)
+-            
+-            request.session['username'] = unencodedUserDetails.username
++            try:
++                unencodedUserDetails = json.loads(decoded.decode('utf-8'))
++            except Exception:
++                logger.warning("Failed to decode user cookie; ignoring.")
++                unencodedUserDetails = None
++            if unencodedUserDetails:
++                logger.info("User details were retrieved for user: %s", unencodedUserDetails.get('username'))
++                request.session['username'] = unencodedUserDetails.get('username')
++            else:
++                # fallback: no valid cookie, treat as not logged in
++                request.session.flush()
++                return render(request, 'app/login.html',{})
+ 
+             if (target != None) and (target) and (not target == "null"):
+                 return redirect(target)
+@@ -99,16 +110,12 @@
+             logger.info("Creating the Database connection")
+             with connection.cursor() as cursor:
+                 logger.info("Creating database query")
+-                # START VULN CODE
+-                sqlQuery = "select username, password, password_hint, created_at, last_login, \
+-                            real_name, blab_name from users where username='" + username + "' \
+-                            and password='" + hashlib.md5(password.encode('utf-8')).hexdigest() + "';"
+-                logger.info(sqlQuery)
+-
+-                parsed = sqlparse.parse(sqlQuery)[0]
+-                logger.info("Attempted login with username and password: " + parsed[8].value)
+-
+-                cursor.execute(sqlQuery)
++                # Use parameterized query and stronger password hash (SHA‑256)
++                password_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
++                sqlQuery = "SELECT username, password, password_hint, created_at, last_login, "
++                "real_name, blab_name FROM users WHERE username = %s AND password = %s;"
++                logger.info("Executing login query for user %s", username)
++                cursor.execute(sqlQuery, [username, password_hash])
+                 # END VULN CODE
+                 # GOOD CODE
+                 # sqlQuery = "select username, password, password_hint, created_at, last_login, \
+@@ -122,11 +129,11 @@
+                 if (row):
+                     columns = [col[0] for col in cursor.description]
+                     row = dict(zip(columns, row))
+-                    logger.info("User found" + str(row)) # CWE-117
++                    logger.info("User found: %s", row)
+                     response.set_cookie('username', username)
+                     private_key = rsa.generate_private_key(
+-                        public_exponent=65537, key_size=1024,) #CWE-326
+-                    response.set_cookie('password', private_key)
++                        public_exponent=65537, key_size=2048)
++                    # Do NOT store private key in a cookie; it remains server‑side only
+ 
+                     if (not remember is None):
+                         currentUser = User(username=row["username"],
+@@ -135,9 +142,8 @@
+                                     blab_name=row["blab_name"])
+                         response = updateInResponse(currentUser, response)
+ 
+-                    update = "UPDATE users SET last_login=datetime('now') WHERE username='" + row['username'] + "';"
+-                    cursor.execute(update)
+-
++                    update = "UPDATE users SET last_login=datetime('now') WHERE username = %s;"
++                    cursor.execute(update, [row['username']])
+                     # if the username ends with "totp", add the TOTP login step
+                     if username[-4:].lower() == "totp":
+                         logger.info("User " + username + " has TOTP enabled")

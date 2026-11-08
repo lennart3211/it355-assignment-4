@@ -1,0 +1,13 @@
+--- a/app/views/userController.py
++++ b/app/views/userController.py
+@@ -729,8 +729,8 @@
+         logger.info("Getting Database connection")
+         with connection.cursor() as cursor:
+             logger.info("Preparing the duplicate username check Prepared Statement")
+-            sqlStatement = "SELECT username FROM users WHERE username='%s'"
+-            cursor.execute(sqlStatement % (username,))
++            sqlStatement = "SELECT username FROM users WHERE username = %s"
++            cursor.execute(sqlStatement, [username])
+             result = cursor.fetchone()
+             if not result:
+                 # username does not exist

@@ -1,0 +1,50 @@
+--- a/app/views/userController.py
++++ b/app/views/userController.py
+@@ -556,8 +556,9 @@
+     #TODO: Experiment with safe=False on JsonResponse, send in non-dict objects for serialization
+     # Initial response only get returns if everything else succeeds.
+     # This must be here in order to use set_cookie later in the program
+-    msg = f"<script>alert('Successfully changed values!\\nusername: {username.lower()}\\nReal Name: {realName}\\nBlab Name: {blabName}');</script>"
+-    response = JsonResponse({'values':{"username": username.lower(), "realName": realName, "blabName": blabName}, 'message':msg},status=200)
++    # Build a safe message without embedding raw user input in executable script tags
++    safe_msg = f"Successfully changed values! Username: {username.lower()}, Real Name: {realName}, Blab Name: {blabName}"
++    response = JsonResponse({'values':{"username": username.lower(), "realName": realName, "blabName": blabName}, 'message': safe_msg},status=200)
+     
+     logger.info("entering processProfile")
+     sessionUsername = request.session.get('username')
+@@ -565,8 +566,8 @@
+     # Ensure user is logged in
+     if not sessionUsername:
+         logger.info("User is not Logged In = redirecting...")
+-        response = JsonResponse({'message':"<script>alert('Error - please login');</script>"},status=403)
+-        #response.status_code = 403
++        # Return a safe JSON error without script injection
++        response = JsonResponse({'message':'Error - please login'},status=403)
+         return response
+         #TODO: Resolve request/response status and ensure same funcitonality
+         
+@@ -629,11 +630,19 @@
+         # Update remember me functionality
+         userDetailsCookie = request.COOKIES.get('user')
+         if userDetailsCookie is not None:
+-            decoded = base64.b64decode(userDetailsCookie)
+-            unencodedUserDetails = pickle.loads(decoded)
+-            # unencodedUserDetails = pickle.loads(base64.b64decode(userDetailsCookie))
+-            unencodedUserDetails.username = username
+-            response = updateInResponse(unencodedUserDetails, response)
++            try:
++                decoded = base64.b64decode(userDetailsCookie)
++                # Use JSON instead of pickle for safe deserialization
++                import json
++                user_data = json.loads(decoded.decode('utf-8'))
++                # Update the username field safely
++                user_data['username'] = username
++                # Re‑encode and store back in the cookie via helper
++                response = updateInResponse(user_data, response)
++            except (base64.binascii.Error, json.JSONDecodeError, TypeError) as e:
++                logger.error('Failed to safely decode user cookie', e)
++                # Fallback: clear the cookie to avoid reuse of malformed data
++                response.delete_cookie('user')
+         
+ 
+         # Update user profile image

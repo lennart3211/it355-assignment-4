@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0037"],
+  "edits": [
+    {
+      "start_line": 764,
+      "end_line": 775,
+      "replacement": "                    sqlStrQueries = [\n                    \"UPDATE users SET username=%s WHERE username=%s\",\n                    \"UPDATE blabs SET blabber=%s WHERE blabber=%s\",\n                    \"UPDATE comments SET blabber=%s WHERE blabber=%s\",\n                    \"UPDATE listeners SET blabber=%s WHERE blabber=%s\",\n                    \"UPDATE listeners SET listener=%s WHERE listener=%s\",\n                    \"UPDATE users_history SET blabber=%s WHERE blabber=%s\"\n                    ]\n\n                # Execute updates as part of a batch transaction\n                # This will roll back all changes if one query fails\n                for query in sqlStrQueries:\n                    cursor.execute(query, [newUsername, oldUsername])"
+    }
+  ],
+  "explanation": "Replaced string interpolation with parameterized SQL statements using the DB cursor's placeholder syntax. This eliminates the possibility of SQL injection by ensuring user-supplied values are passed as parameters rather than concatenated into the query string.",
+  "review_notes": "Verify that the database backend used by Django's connection.cursor() supports the %s placeholder format (default for most backends). Ensure that the ordering of parameters matches each query's placeholders. Confirm that no other parts of the code rely on the previous string formatting behavior."
+}

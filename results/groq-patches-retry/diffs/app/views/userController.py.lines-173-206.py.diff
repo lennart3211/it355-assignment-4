@@ -1,0 +1,15 @@
+--- a/app/views/userController.py
++++ b/app/views/userController.py
+@@ -181,9 +181,9 @@
+     try:
+         logger.info("Creating the Database connection")
+         with connection.cursor() as cursor:
+-            sql = "SELECT password_hint FROM users WHERE username = '" + username + "'"
+-            logger.info(sql)
+-            cursor.execute(sql)
++            sql = "SELECT password_hint FROM users WHERE username = %s"
++            logger.debug("Executing parameterized query for password hint")
++            cursor.execute(sql, [username])
+             row = cursor.fetchone()
+             
+             if (row):

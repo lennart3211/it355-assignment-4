@@ -1,0 +1,43 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0021","F0026","F0027","F0028","F0029","F0030","F0031"],
+  "edits": [
+    {
+      "start_line": 42,
+      "end_line": 45,
+      "replacement": "            # Validate redirect target to prevent open redirect attacks\n            from django.utils.http import url_has_allowed_host_and_scheme\n            if target and url_has_allowed_host_and_scheme(url=target, allowed_hosts=None, require_https=False):\n                return redirect(target)\n            else:\n                return redirect('feed')"
+    },
+    {
+      "start_line": 68,
+      "end_line": 70,
+      "replacement": "            # Replace unsafe pickle deserialization with a safe JSON decode\n            import json\n            decoded = base64.b64decode(userDetailsCookie)\n            try:\n                unencodedUserDetails = json.loads(decoded.decode('utf-8'))\n            except Exception:\n                logger.warning(\"Failed to decode user cookie; ignoring.\")\n                unencodedUserDetails = None"
+    },
+    {
+      "start_line": 71,
+      "end_line": 73,
+      "replacement": "            if unencodedUserDetails:\n                logger.info(\"User details were retrieved for user: %s\", unencodedUserDetails.get('username'))\n                request.session['username'] = unencodedUserDetails.get('username')\n            else:\n                # fallback: no valid cookie, treat as not logged in\n                request.session.flush()\n                return render(request, 'app/login.html',{})"
+    },
+    {
+      "start_line": 102,
+      "end_line": 111,
+      "replacement": "                # Use parameterized query and stronger password hash (SHA‑256)\n                password_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()\n                sqlQuery = \"SELECT username, password, password_hint, created_at, last_login, \"\n                \"real_name, blab_name FROM users WHERE username = %s AND password = %s;\"\n                logger.info(\"Executing login query for user %s\", username)\n                cursor.execute(sqlQuery, [username, password_hash])"
+    },
+    {
+      "start_line": 125,
+      "end_line": 125,
+      "replacement": "                    logger.info(\"User found: %s\", row)"
+    },
+    {
+      "start_line": 127,
+      "end_line": 129,
+      "replacement": "                    private_key = rsa.generate_private_key(\n                        public_exponent=65537, key_size=2048)\n                    # Do NOT store private key in a cookie; it remains server‑side only"
+    },
+    {
+      "start_line": 138,
+      "end_line": 140,
+      "replacement": "                    update = \"UPDATE users SET last_login=datetime('now') WHERE username = %s;\"\n                    cursor.execute(update, [row['username']])"
+    }
+  ],
+  "explanation": "Implemented safe redirect validation, replaced pickle deserialization with JSON, added fallback for invalid cookies, switched to parameterized SQL queries with SHA‑256 hashing, removed password logging, avoided storing private RSA keys in cookies, and parameterized the last_login update. These changes address the listed CWE findings while preserving existing functionality.",
+  "review_notes": "Verify that the allowed_hosts logic for url_has_allowed_host_and_scheme matches the application's security policy; adjust allowed_hosts if needed. Ensure that any code expecting the old cookie format can handle the new JSON structure or be updated accordingly. Confirm that the database schema stores SHA‑256 password hashes (or migrate existing passwords). Test login flow, especially the TOTP branch, after these changes."
+}

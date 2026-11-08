@@ -1,0 +1,23 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0038","F0039","F0040"],
+  "edits": [
+    {
+      "start_line": 559,
+      "end_line": 560,
+      "replacement": "    # Build a safe message without embedding raw user input in executable script tags\n    safe_msg = f\"Successfully changed values! Username: {username.lower()}, Real Name: {realName}, Blab Name: {blabName}\"\n    response = JsonResponse({'values':{\"username\": username.lower(), \"realName\": realName, \"blabName\": blabName}, 'message': safe_msg},status=200)"
+    },
+    {
+      "start_line": 568,
+      "end_line": 569,
+      "replacement": "        # Return a safe JSON error without script injection\n        response = JsonResponse({'message':'Error - please login'},status=403)"
+    },
+    {
+      "start_line": 632,
+      "end_line": 636,
+      "replacement": "            try:\n                decoded = base64.b64decode(userDetailsCookie)\n                # Use JSON instead of pickle for safe deserialization\n                import json\n                user_data = json.loads(decoded.decode('utf-8'))\n                # Update the username field safely\n                user_data['username'] = username\n                # Re‑encode and store back in the cookie via helper\n                response = updateInResponse(user_data, response)\n            except (base64.binascii.Error, json.JSONDecodeError, TypeError) as e:\n                logger.error('Failed to safely decode user cookie', e)\n                # Fallback: clear the cookie to avoid reuse of malformed data\n                response.delete_cookie('user')"
+    }
+  ],
+  "explanation": "Replaced script‑based messages with plain text to eliminate reflected XSS (F0039, F0040). Rewrote the cookie handling to avoid pickle deserialization; it now base64‑decodes, parses JSON, updates the username, and re‑stores safely, handling errors gracefully (F0038).",
+  "review_notes": "Verify that other parts of the application expect the 'user' cookie to contain pickled data; adjust those callers to use JSON if needed. Ensure updateInResponse can accept a dict or adjust it accordingly. Test that login and profile update flows still work and that error handling for malformed cookies behaves as intended."
+}

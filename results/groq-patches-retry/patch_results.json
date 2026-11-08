@@ -1,0 +1,791 @@
+[
+  {
+    "file": "app/views/userController.py",
+    "job_id": "app/views/userController.py.lines-33-170",
+    "editable_lines": [
+      33,
+      170
+    ],
+    "source_sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847",
+    "findings": [
+      {
+        "start_line": 102,
+        "end_line": 106,
+        "function": "login",
+        "cwe_id": "CWE-89",
+        "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+        "severity": "High",
+        "confidence": "High",
+        "description": "User-supplied username and password are concatenated into an SQL query without parameterization, allowing SQL injection.",
+        "vulnerable_snippet": "                sqlQuery = \"select username, password, password_hint, created_at, last_login, \\n                            real_name, blab_name from users where username='\" + username + \"' \\n                            and password='\" + hashlib.md5(password.encode('utf-8')).hexdigest() + \"';\"",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0021"
+      },
+      {
+        "start_line": 68,
+        "end_line": 70,
+        "function": "login",
+        "cwe_id": "CWE-502",
+        "cwe_name": "Deserialization of Untrusted Data",
+        "severity": "Critical",
+        "confidence": "High",
+        "description": "A cookie value is base64-decoded and unpickled without validation, leading to insecure deserialization attacks.",
+        "vulnerable_snippet": "            decoded = base64.b64decode(userDetailsCookie)\n            unencodedUserDetails = pickle.loads(decoded)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0026"
+      },
+      {
+        "start_line": 42,
+        "end_line": 45,
+        "function": "login",
+        "cwe_id": "CWE-601",
+        "cwe_name": "URL Redirection to Untrusted Site ('Open Redirect')",
+        "severity": "Medium",
+        "confidence": "High",
+        "description": "The 'target' parameter from the request is used directly in redirect() without validation, enabling open redirect attacks.",
+        "vulnerable_snippet": "            if (target != None) and (target) and (not target == \"null\"):\n                return redirect(target)\n            else:\n                return redirect('feed')",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0027"
+      },
+      {
+        "start_line": 91,
+        "end_line": 96,
+        "function": "login",
+        "cwe_id": "CWE-601",
+        "cwe_name": "URL Redirection to Untrusted Site ('Open Redirect')",
+        "severity": "Medium",
+        "confidence": "High",
+        "description": "The 'target' POST parameter is used directly in redirect(), allowing open redirect.",
+        "vulnerable_snippet": "        if (target != None) and (target) and (not target == \"null\"):\n            nextView = target\n            response = redirect(nextView)\n        else:\n            nextView = 'feed'\n            response = redirect(nextView)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0028"
+      },
+      {
+        "start_line": 129,
+        "end_line": 130,
+        "function": "login",
+        "cwe_id": "CWE-326",
+        "cwe_name": "Inadequate Encryption Strength",
+        "severity": "High",
+        "confidence": "Medium",
+        "description": "A newly generated RSA private key is stored directly in a cookie, exposing sensitive cryptographic material.",
+        "vulnerable_snippet": "                response.set_cookie('password', private_key)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0029"
+      },
+      {
+        "start_line": 125,
+        "end_line": 125,
+        "function": "login",
+        "cwe_id": "CWE-117",
+        "cwe_name": "Improper Output Neutralization for Logs ('Log Injection')",
+        "severity": "Low",
+        "confidence": "Medium",
+        "description": "User-controlled data is concatenated into log messages without sanitization, allowing log injection.",
+        "vulnerable_snippet": "                logger.info(\"User found\" + str(row))",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0030"
+      },
+      {
+        "start_line": 125,
+        "end_line": 125,
+        "function": "login",
+        "cwe_id": "CWE-327",
+        "cwe_name": "Use of Weak Cryptographic Algorithm",
+        "severity": "Medium",
+        "confidence": "Medium",
+        "description": "MD5 is used to hash passwords, which is a weak, broken algorithm.",
+        "vulnerable_snippet": "                and password='\" + hashlib.md5(password.encode('utf-8')).hexdigest() + \"';",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0031"
+      }
+    ],
+    "model_id": "openai/gpt-oss-120b",
+    "attempts": [
+      {
+        "attempt": 1,
+        "at_utc": "2026-11-08T18:33:26.775371+00:00",
+        "status": "ok"
+      }
+    ],
+    "verification_status": "pending",
+    "status": "patch_proposed",
+    "original_path": "original/app/views/userController.py.lines-33-170.py",
+    "raw_path": "raw/app/views/userController.py.lines-33-170/1794162809810102000.txt",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0021",
+        "F0026",
+        "F0027",
+        "F0028",
+        "F0029",
+        "F0030",
+        "F0031"
+      ],
+      "edits": [
+        {
+          "start_line": 42,
+          "end_line": 45,
+          "replacement": "            # Validate redirect target to prevent open redirect attacks\n            from django.utils.http import url_has_allowed_host_and_scheme\n            if target and url_has_allowed_host_and_scheme(url=target, allowed_hosts=None, require_https=False):\n                return redirect(target)\n            else:\n                return redirect('feed')"
+        },
+        {
+          "start_line": 68,
+          "end_line": 70,
+          "replacement": "            # Replace unsafe pickle deserialization with a safe JSON decode\n            import json\n            decoded = base64.b64decode(userDetailsCookie)\n            try:\n                unencodedUserDetails = json.loads(decoded.decode('utf-8'))\n            except Exception:\n                logger.warning(\"Failed to decode user cookie; ignoring.\")\n                unencodedUserDetails = None"
+        },
+        {
+          "start_line": 71,
+          "end_line": 73,
+          "replacement": "            if unencodedUserDetails:\n                logger.info(\"User details were retrieved for user: %s\", unencodedUserDetails.get('username'))\n                request.session['username'] = unencodedUserDetails.get('username')\n            else:\n                # fallback: no valid cookie, treat as not logged in\n                request.session.flush()\n                return render(request, 'app/login.html',{})"
+        },
+        {
+          "start_line": 102,
+          "end_line": 111,
+          "replacement": "                # Use parameterized query and stronger password hash (SHA\u2011256)\n                password_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()\n                sqlQuery = \"SELECT username, password, password_hint, created_at, last_login, \"\n                \"real_name, blab_name FROM users WHERE username = %s AND password = %s;\"\n                logger.info(\"Executing login query for user %s\", username)\n                cursor.execute(sqlQuery, [username, password_hash])"
+        },
+        {
+          "start_line": 125,
+          "end_line": 125,
+          "replacement": "                    logger.info(\"User found: %s\", row)"
+        },
+        {
+          "start_line": 127,
+          "end_line": 129,
+          "replacement": "                    private_key = rsa.generate_private_key(\n                        public_exponent=65537, key_size=2048)\n                    # Do NOT store private key in a cookie; it remains server\u2011side only"
+        },
+        {
+          "start_line": 138,
+          "end_line": 140,
+          "replacement": "                    update = \"UPDATE users SET last_login=datetime('now') WHERE username = %s;\"\n                    cursor.execute(update, [row['username']])"
+        }
+      ],
+      "explanation": "Implemented safe redirect validation, replaced pickle deserialization with JSON, added fallback for invalid cookies, switched to parameterized SQL queries with SHA\u2011256 hashing, removed password logging, avoided storing private RSA keys in cookies, and parameterized the last_login update. These changes address the listed CWE findings while preserving existing functionality.",
+      "review_notes": "Verify that the allowed_hosts logic for url_has_allowed_host_and_scheme matches the application's security policy; adjust allowed_hosts if needed. Ensure that any code expecting the old cookie format can handle the new JSON structure or be updated accordingly. Confirm that the database schema stores SHA\u2011256 password hashes (or migrate existing passwords). Test login flow, especially the TOTP branch, after these changes."
+    },
+    "candidate_path": "candidates/app/views/userController.py.lines-33-170.py",
+    "diff_path": "diffs/app/views/userController.py.lines-33-170.py.diff",
+    "candidate_sha256": "ca5eadb9b85c6c26239e70767c49ef0eb79832cb8c95cc3377bddaf350d8aa00",
+    "syntax_check": "passed"
+  },
+  {
+    "file": "app/views/userController.py",
+    "job_id": "app/views/userController.py.lines-173-206",
+    "editable_lines": [
+      173,
+      206
+    ],
+    "source_sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847",
+    "findings": [
+      {
+        "start_line": 184,
+        "end_line": 186,
+        "function": "showPasswordHint",
+        "cwe_id": "CWE-89",
+        "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The username parameter from GET is directly concatenated into an SQL query, enabling SQL injection.",
+        "vulnerable_snippet": "            sql = \"SELECT password_hint FROM users WHERE username = '\" + username + \"'\"\n            logger.info(sql)\n            cursor.execute(sql)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0022"
+      }
+    ],
+    "model_id": "openai/gpt-oss-120b",
+    "attempts": [
+      {
+        "attempt": 1,
+        "at_utc": "2026-11-08T18:33:29.841284+00:00",
+        "status": "ok"
+      }
+    ],
+    "verification_status": "pending",
+    "status": "patch_proposed",
+    "original_path": "original/app/views/userController.py.lines-173-206.py",
+    "raw_path": "raw/app/views/userController.py.lines-173-206/1794162810802705000.txt",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0022"
+      ],
+      "edits": [
+        {
+          "start_line": 184,
+          "end_line": 186,
+          "replacement": "            sql = \"SELECT password_hint FROM users WHERE username = %s\"\n            logger.debug(\"Executing parameterized query for password hint\")\n            cursor.execute(sql, [username])"
+        }
+      ],
+      "explanation": "Replaced string concatenation with a parameterized query using Django's DB API to prevent SQL injection. Also reduced logging of the raw query containing user input, logging only a safe debug message instead.",
+      "review_notes": "Verify that the database schema uses a column named 'username' in the users table and that the placeholder syntax (%s) matches the database backend. Ensure that logging changes meet audit requirements and that no other parts of the function rely on the previous raw SQL string."
+    },
+    "candidate_path": "candidates/app/views/userController.py.lines-173-206.py",
+    "diff_path": "diffs/app/views/userController.py.lines-173-206.py.diff",
+    "candidate_sha256": "a3dba50485782d9e6afbc1d09a5e224c6f34fe5dc33e1b09148bc89f30854ec1",
+    "syntax_check": "passed"
+  },
+  {
+    "file": "app/views/userController.py",
+    "job_id": "app/views/userController.py.lines-215-244",
+    "editable_lines": [
+      215,
+      244
+    ],
+    "source_sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847",
+    "findings": [
+      {
+        "start_line": 225,
+        "end_line": 227,
+        "function": "showTotp",
+        "cwe_id": "CWE-89",
+        "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The username from session is concatenated into an SQL query without sanitization, permitting SQL injection.",
+        "vulnerable_snippet": "            sql = \"SELECT totp_secret FROM users WHERE username = '\" + username + \"'\"\n            logger.info(sql)\n            cursor.execute(sql)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0023"
+      }
+    ],
+    "model_id": "openai/gpt-oss-120b",
+    "attempts": [
+      {
+        "attempt": 1,
+        "at_utc": "2026-11-08T18:33:30.822059+00:00",
+        "status": "ok"
+      }
+    ],
+    "verification_status": "pending",
+    "status": "patch_proposed",
+    "original_path": "original/app/views/userController.py.lines-215-244.py",
+    "raw_path": "raw/app/views/userController.py.lines-215-244/1794162811724251000.txt",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0023"
+      ],
+      "edits": [
+        {
+          "start_line": 225,
+          "end_line": 227,
+          "replacement": "            sql = \"SELECT totp_secret FROM users WHERE username = %s\"\n            logger.debug(\"Executing parameterized query for TOTP secret\")\n            cursor.execute(sql, [username])"
+        }
+      ],
+      "explanation": "Replaced string concatenation with a parameterized query to prevent SQL injection. Logging of the raw query was changed to debug level without exposing user data. The rest of the function behavior remains unchanged.",
+      "review_notes": "Verify that the database backend used by Django's connection.cursor() supports the %s placeholder (default for most backends). Ensure that username is always a string; if None, handle accordingly before query. Confirm that logging level adjustments fit the application's logging policy."
+    },
+    "candidate_path": "candidates/app/views/userController.py.lines-215-244.py",
+    "diff_path": "diffs/app/views/userController.py.lines-215-244.py.diff",
+    "candidate_sha256": "0838d1d443f06c626691c3b8ebd5bc8864be772f70075d480b5bf200306ccc00",
+    "syntax_check": "passed"
+  },
+  {
+    "file": "app/views/userController.py",
+    "job_id": "app/views/userController.py.lines-247-300",
+    "editable_lines": [
+      247,
+      300
+    ],
+    "source_sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847",
+    "findings": [
+      {
+        "start_line": 259,
+        "end_line": 261,
+        "function": "processTotp",
+        "cwe_id": "CWE-89",
+        "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The username from session is concatenated into an SQL query, leading to possible SQL injection.",
+        "vulnerable_snippet": "            sql = \"SELECT totp_secret FROM users WHERE username = '\" + username + \"'\"\n            logger.info(sql)\n            cursor.execute(sql)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0024"
+      }
+    ],
+    "model_id": "openai/gpt-oss-120b",
+    "attempts": [
+      {
+        "attempt": 1,
+        "at_utc": "2026-11-08T18:33:31.742933+00:00",
+        "status": "request_error",
+        "http_status": 429,
+        "error_type": "RateLimitError"
+      },
+      {
+        "attempt": 2,
+        "at_utc": "2026-11-08T18:33:36.842786+00:00",
+        "status": "ok"
+      }
+    ],
+    "verification_status": "pending",
+    "status": "patch_proposed",
+    "original_path": "original/app/views/userController.py.lines-247-300.py",
+    "raw_path": "raw/app/views/userController.py.lines-247-300/1794162817971611000.txt",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0024"
+      ],
+      "edits": [
+        {
+          "start_line": 259,
+          "end_line": 261,
+          "replacement": "            sql = \"SELECT totp_secret FROM users WHERE username = %s\"\n            logger.info(\"Executing parameterized query for TOTP secret\")\n            cursor.execute(sql, [username])"
+        }
+      ],
+      "explanation": "Replaced string concatenation with a parameterized SQL query using the Django DB cursor API to prevent SQL injection via the session-supplied username.",
+      "review_notes": "Verify that the database backend accepts %s placeholders (standard for Django). Ensure that 'username' is always a string; if None, handle appropriately before executing. Confirm that logging of the raw query does not expose sensitive data."
+    },
+    "candidate_path": "candidates/app/views/userController.py.lines-247-300.py",
+    "diff_path": "diffs/app/views/userController.py.lines-247-300.py.diff",
+    "candidate_sha256": "02f542a2d7447671609378c841a9389507b2cd8e7aa3aae5d120e4fc2d3f7be3",
+    "syntax_check": "passed"
+  },
+  {
+    "file": "app/views/userController.py",
+    "job_id": "app/views/userController.py.lines-328-364",
+    "editable_lines": [
+      328,
+      364
+    ],
+    "source_sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847",
+    "findings": [
+      {
+        "start_line": 341,
+        "end_line": 342,
+        "function": "processRegister",
+        "cwe_id": "CWE-89",
+        "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The username from POST is directly interpolated into an SQL statement, allowing SQL injection.",
+        "vulnerable_snippet": "            sqlQuery = \"SELECT username FROM users WHERE username = '\" + username + \"'\"\n            cursor.execute(sqlQuery)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0025"
+      }
+    ],
+    "model_id": "openai/gpt-oss-120b",
+    "attempts": [
+      {
+        "attempt": 1,
+        "at_utc": "2026-11-08T18:33:37.993579+00:00",
+        "status": "request_error",
+        "http_status": 429,
+        "error_type": "RateLimitError"
+      },
+      {
+        "attempt": 2,
+        "at_utc": "2026-11-08T18:33:49.105903+00:00",
+        "status": "ok"
+      }
+    ],
+    "verification_status": "pending",
+    "status": "patch_proposed",
+    "original_path": "original/app/views/userController.py.lines-328-364.py",
+    "raw_path": "raw/app/views/userController.py.lines-328-364/1794162830156170000.txt",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0025"
+      ],
+      "edits": [
+        {
+          "start_line": 340,
+          "end_line": 342,
+          "replacement": "        with connection.cursor() as cursor:\n            sqlQuery = \"SELECT username FROM users WHERE username = %s\"\n            cursor.execute(sqlQuery, [username])"
+        }
+      ],
+      "explanation": "Replaced string interpolation with a parameterized query using Django's DB cursor placeholder %s and passing the username as a separate parameter, eliminating SQL injection risk.",
+      "review_notes": "Ensure that the database backend supports %s placeholders (default for Django's SQLite backend). Verify that any surrounding code expecting raw SQL strings is compatible. No other changes required."
+    },
+    "candidate_path": "candidates/app/views/userController.py.lines-328-364.py",
+    "diff_path": "diffs/app/views/userController.py.lines-328-364.py.diff",
+    "candidate_sha256": "9ba271307822fb3f75cd2f0b31afb7eda65b838ffe708ae2909ef967f1b54a59",
+    "syntax_check": "passed"
+  },
+  {
+    "file": "app/views/userController.py",
+    "job_id": "app/views/userController.py.lines-381-441",
+    "editable_lines": [
+      381,
+      441
+    ],
+    "source_sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847",
+    "findings": [
+      {
+        "start_line": 410,
+        "end_line": 418,
+        "function": "register (anonymous)",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "Critical",
+        "confidence": "High",
+        "description": "User-supplied values (username, password, realName, blabName) are concatenated into an SQL INSERT string and executed without parameterization, allowing injection.",
+        "vulnerable_snippet": "query += \"('\" + username + \"',...\"",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0032"
+      }
+    ],
+    "model_id": "openai/gpt-oss-120b",
+    "attempts": [
+      {
+        "attempt": 1,
+        "at_utc": "2026-11-08T18:33:50.178843+00:00",
+        "status": "request_error",
+        "http_status": 429,
+        "error_type": "RateLimitError"
+      },
+      {
+        "attempt": 2,
+        "at_utc": "2026-11-08T18:34:00.309095+00:00",
+        "status": "ok"
+      }
+    ],
+    "verification_status": "pending",
+    "status": "invalid_proposal",
+    "original_path": "original/app/views/userController.py",
+    "raw_path": "raw/app/views/userController.py.lines-381-441/1794162841828457000.txt",
+    "syntax_check": "rejected",
+    "error": "unexpected indent (userController.py, line 410)"
+  },
+  {
+    "file": "app/views/userController.py",
+    "job_id": "app/views/userController.py.lines-476-543",
+    "editable_lines": [
+      476,
+      543
+    ],
+    "source_sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847",
+    "findings": [
+      {
+        "start_line": 494,
+        "end_line": 495,
+        "function": "showProfile",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The username from the session is interpolated into a SQL query using the % operator, enabling injection if the session value is tampered with.",
+        "vulnerable_snippet": "cursor.execute(sqlMyHecklers % username)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0033"
+      },
+      {
+        "start_line": 511,
+        "end_line": 513,
+        "function": "showProfile",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The username is concatenated directly into a SELECT statement for the audit trail, creating an injection vector.",
+        "vulnerable_snippet": "sqlMyEvents = \"select event from users_history where blabber=\\\"\" + username + \"\\\" ORDER BY eventid DESC; \"\ncursor.execute(sqlMyEvents)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0034"
+      },
+      {
+        "start_line": 521,
+        "end_line": 523,
+        "function": "showProfile",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "User-controlled username is concatenated into a SELECT query without escaping, leading to injection.",
+        "vulnerable_snippet": "sql = \"SELECT username, real_name, blab_name, totp_secret FROM users WHERE username = '\" + username + \"'\"",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0035"
+      }
+    ],
+    "model_id": "openai/gpt-oss-120b",
+    "attempts": [
+      {
+        "attempt": 1,
+        "at_utc": "2026-11-08T18:34:01.844302+00:00",
+        "status": "request_error",
+        "http_status": 429,
+        "error_type": "RateLimitError"
+      },
+      {
+        "attempt": 2,
+        "at_utc": "2026-11-08T18:34:17.956038+00:00",
+        "status": "request_error",
+        "http_status": 429,
+        "error_type": "RateLimitError"
+      },
+      {
+        "attempt": 3,
+        "at_utc": "2026-11-08T18:34:28.070646+00:00",
+        "status": "ok"
+      }
+    ],
+    "verification_status": "pending",
+    "status": "patch_proposed",
+    "original_path": "original/app/views/userController.py.lines-476-543.py",
+    "raw_path": "raw/app/views/userController.py.lines-476-543/1794162869583329000.txt",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0033",
+        "F0034",
+        "F0035"
+      ],
+      "edits": [
+        {
+          "start_line": 492,
+          "end_line": 495,
+          "replacement": "            # Find the Blabbers that this user listens to\n            logger.info(sqlMyHecklers)\n            # Use parameterized query to avoid SQL injection\n            cursor.execute(sqlMyHecklers, [username])\n            myHecklersResults = cursor.fetchall()"
+        },
+        {
+          "start_line": 510,
+          "end_line": 514,
+          "replacement": "            # START EXAMPLE VULNERABILITY (fixed)\n            sqlMyEvents = \"SELECT event FROM users_history WHERE blabber = %s ORDER BY eventid DESC;\"\n            logger.info(sqlMyEvents)\n            cursor.execute(sqlMyEvents, [username])\n            userHistoryResult = cursor.fetchall()\n            # END EXAMPLE VULNERABILITY"
+        },
+        {
+          "start_line": 521,
+          "end_line": 523,
+          "replacement": "            # Get the users information (fixed)\n            sql = \"SELECT username, real_name, blab_name, totp_secret FROM users WHERE username = %s\"\n            logger.info(sql)\n            cursor.execute(sql, [username])"
+        }
+      ],
+      "explanation": "Replaced string interpolation and concatenation with parameterized queries using Django's DB cursor execute API, which safely escapes the user-supplied username from the session. This addresses the three reported SQL injection findings while preserving existing logic and return values.",
+      "review_notes": "Verify that the database backend (SQLite via Django) supports the %s placeholder syntax used with cursor.execute. Ensure that any existing tests expecting the old raw SQL strings still pass, and confirm that logger output remains appropriate. No changes outside the editable range were required."
+    },
+    "candidate_path": "candidates/app/views/userController.py.lines-476-543.py",
+    "diff_path": "diffs/app/views/userController.py.lines-476-543.py.diff",
+    "candidate_sha256": "cfb743e132c290e02c0fa0a7bbd0d784023a17a8253a2a3bfcb90c4bc33149c7",
+    "syntax_check": "passed"
+  },
+  {
+    "file": "app/views/userController.py",
+    "job_id": "app/views/userController.py.lines-724-747",
+    "editable_lines": [
+      724,
+      747
+    ],
+    "source_sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847",
+    "findings": [
+      {
+        "start_line": 734,
+        "end_line": 734,
+        "function": "usernameExists",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "Medium",
+        "confidence": "High",
+        "description": "Username is interpolated into a SELECT statement using % formatting, allowing injection if the input is not sanitized.",
+        "vulnerable_snippet": "cursor.execute(sqlStatement % (username,))",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0036"
+      }
+    ],
+    "model_id": "openai/gpt-oss-120b",
+    "attempts": [
+      {
+        "attempt": 1,
+        "at_utc": "2026-11-08T18:34:29.606063+00:00",
+        "status": "request_error",
+        "http_status": 429,
+        "error_type": "RateLimitError"
+      },
+      {
+        "attempt": 2,
+        "at_utc": "2026-11-08T18:34:34.741908+00:00",
+        "status": "ok"
+      }
+    ],
+    "verification_status": "pending",
+    "status": "patch_proposed",
+    "original_path": "original/app/views/userController.py.lines-724-747.py",
+    "raw_path": "raw/app/views/userController.py.lines-724-747/1794162875723935000.txt",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0036"
+      ],
+      "edits": [
+        {
+          "start_line": 732,
+          "end_line": 734,
+          "replacement": "            sqlStatement = \"SELECT username FROM users WHERE username = %s\"\n            cursor.execute(sqlStatement, [username])\n            result = cursor.fetchone()"
+        }
+      ],
+      "explanation": "Replaced string interpolation with a parameterized query using Django's DB cursor execute API, eliminating the SQL injection risk for the username check.",
+      "review_notes": "Verify that the database backend accepts %s placeholders (Django's default paramstyle). Ensure that the surrounding error handling still works and that tests cover both existing and non\u2011existing usernames."
+    },
+    "candidate_path": "candidates/app/views/userController.py.lines-724-747.py",
+    "diff_path": "diffs/app/views/userController.py.lines-724-747.py.diff",
+    "candidate_sha256": "03d7d8cf071c55ee67e6f1862130b84d22e3bf341a162bcc90e8fa17d9af0583",
+    "syntax_check": "passed"
+  },
+  {
+    "file": "app/views/userController.py",
+    "job_id": "app/views/userController.py.lines-750-797",
+    "editable_lines": [
+      750,
+      797
+    ],
+    "source_sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847",
+    "findings": [
+      {
+        "start_line": 774,
+        "end_line": 775,
+        "function": "updateUsername",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "Critical",
+        "confidence": "High",
+        "description": "Multiple update statements concatenate newUsername and oldUsername via % formatting, enabling injection across several tables.",
+        "vulnerable_snippet": "cursor.execute(query % (newUsername,oldUsername))",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0037"
+      }
+    ],
+    "model_id": "openai/gpt-oss-120b",
+    "attempts": [
+      {
+        "attempt": 1,
+        "at_utc": "2026-11-08T18:34:35.743869+00:00",
+        "status": "request_error",
+        "http_status": 429,
+        "error_type": "RateLimitError"
+      },
+      {
+        "attempt": 2,
+        "at_utc": "2026-11-08T18:34:44.860476+00:00",
+        "status": "ok"
+      }
+    ],
+    "verification_status": "pending",
+    "status": "invalid_proposal",
+    "original_path": "original/app/views/userController.py",
+    "raw_path": "raw/app/views/userController.py.lines-750-797/1794162886169285000.txt",
+    "syntax_check": "rejected",
+    "error": "invalid syntax (userController.py, line 764)"
+  },
+  {
+    "file": "app/views/userController.py",
+    "job_id": "app/views/userController.py.lines-551-673",
+    "editable_lines": [
+      551,
+      673
+    ],
+    "source_sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847",
+    "findings": [
+      {
+        "start_line": 632,
+        "end_line": 636,
+        "function": "processProfile",
+        "cwe_id": "CWE-502",
+        "cwe_name": "Insecure Deserialization",
+        "severity": "Critical",
+        "confidence": "High",
+        "description": "User-controlled cookie is base64 decoded and then deserialized with pickle, allowing execution of arbitrary code if attacker controls the cookie.",
+        "vulnerable_snippet": "decoded = base64.b64decode(userDetailsCookie)\nunencodedUserDetails = pickle.loads(decoded)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0038"
+      },
+      {
+        "start_line": 559,
+        "end_line": 560,
+        "function": "processProfile",
+        "cwe_id": "CWE-79",
+        "cwe_name": "Cross-site Scripting (XSS)",
+        "severity": "Medium",
+        "confidence": "High",
+        "description": "User-supplied values are embedded in a script tag returned in JSON, leading to reflected XSS when rendered in the browser.",
+        "vulnerable_snippet": "msg = f\"<script>alert('Successfully changed values!\\\\nusername: {username.lower()}\\\\nReal Name: {realName}\\\\nBlab Name: {blabName}');</script>\"",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0039"
+      },
+      {
+        "start_line": 568,
+        "end_line": 569,
+        "function": "processProfile",
+        "cwe_id": "CWE-79",
+        "cwe_name": "Cross-site Scripting (XSS)",
+        "severity": "Medium",
+        "confidence": "Medium",
+        "description": "Error message includes a script tag that could be reflected to the client, enabling XSS.",
+        "vulnerable_snippet": "response = JsonResponse({'message':\"<script>alert('Error - please login');</script>\"},status=403)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0040"
+      }
+    ],
+    "model_id": "openai/gpt-oss-120b",
+    "attempts": [
+      {
+        "attempt": 1,
+        "at_utc": "2026-11-08T18:34:46.189754+00:00",
+        "status": "request_error",
+        "http_status": 429,
+        "error_type": "RateLimitError"
+      },
+      {
+        "attempt": 2,
+        "at_utc": "2026-11-08T18:35:07.308534+00:00",
+        "status": "request_error",
+        "http_status": 429,
+        "error_type": "RateLimitError"
+      },
+      {
+        "attempt": 3,
+        "at_utc": "2026-11-08T18:35:17.422848+00:00",
+        "status": "ok"
+      }
+    ],
+    "verification_status": "pending",
+    "status": "patch_proposed",
+    "original_path": "original/app/views/userController.py.lines-551-673.py",
+    "raw_path": "raw/app/views/userController.py.lines-551-673/1794162919347514000.txt",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0038",
+        "F0039",
+        "F0040"
+      ],
+      "edits": [
+        {
+          "start_line": 559,
+          "end_line": 560,
+          "replacement": "    # Build a safe message without embedding raw user input in executable script tags\n    safe_msg = f\"Successfully changed values! Username: {username.lower()}, Real Name: {realName}, Blab Name: {blabName}\"\n    response = JsonResponse({'values':{\"username\": username.lower(), \"realName\": realName, \"blabName\": blabName}, 'message': safe_msg},status=200)"
+        },
+        {
+          "start_line": 568,
+          "end_line": 569,
+          "replacement": "        # Return a safe JSON error without script injection\n        response = JsonResponse({'message':'Error - please login'},status=403)"
+        },
+        {
+          "start_line": 632,
+          "end_line": 636,
+          "replacement": "            try:\n                decoded = base64.b64decode(userDetailsCookie)\n                # Use JSON instead of pickle for safe deserialization\n                import json\n                user_data = json.loads(decoded.decode('utf-8'))\n                # Update the username field safely\n                user_data['username'] = username\n                # Re\u2011encode and store back in the cookie via helper\n                response = updateInResponse(user_data, response)\n            except (base64.binascii.Error, json.JSONDecodeError, TypeError) as e:\n                logger.error('Failed to safely decode user cookie', e)\n                # Fallback: clear the cookie to avoid reuse of malformed data\n                response.delete_cookie('user')"
+        }
+      ],
+      "explanation": "Replaced script\u2011based messages with plain text to eliminate reflected XSS (F0039, F0040). Rewrote the cookie handling to avoid pickle deserialization; it now base64\u2011decodes, parses JSON, updates the username, and re\u2011stores safely, handling errors gracefully (F0038).",
+      "review_notes": "Verify that other parts of the application expect the 'user' cookie to contain pickled data; adjust those callers to use JSON if needed. Ensure updateInResponse can accept a dict or adjust it accordingly. Test that login and profile update flows still work and that error handling for malformed cookies behaves as intended."
+    },
+    "candidate_path": "candidates/app/views/userController.py.lines-551-673.py",
+    "diff_path": "diffs/app/views/userController.py.lines-551-673.py.diff",
+    "candidate_sha256": "c00f0d6d8c35c6ef3ba99df3184de90ee96abb00d365acdd46353c36faf39a2b",
+    "syntax_check": "passed"
+  }
+]

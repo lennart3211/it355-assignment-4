@@ -1,0 +1,23 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0033","F0034","F0035"],
+  "edits": [
+    {
+      "start_line": 492,
+      "end_line": 495,
+      "replacement": "            # Find the Blabbers that this user listens to\n            logger.info(sqlMyHecklers)\n            # Use parameterized query to avoid SQL injection\n            cursor.execute(sqlMyHecklers, [username])\n            myHecklersResults = cursor.fetchall()"
+    },
+    {
+      "start_line": 510,
+      "end_line": 514,
+      "replacement": "            # START EXAMPLE VULNERABILITY (fixed)\n            sqlMyEvents = \"SELECT event FROM users_history WHERE blabber = %s ORDER BY eventid DESC;\"\n            logger.info(sqlMyEvents)\n            cursor.execute(sqlMyEvents, [username])\n            userHistoryResult = cursor.fetchall()\n            # END EXAMPLE VULNERABILITY"
+    },
+    {
+      "start_line": 521,
+      "end_line": 523,
+      "replacement": "            # Get the users information (fixed)\n            sql = \"SELECT username, real_name, blab_name, totp_secret FROM users WHERE username = %s\"\n            logger.info(sql)\n            cursor.execute(sql, [username])"
+    }
+  ],
+  "explanation": "Replaced string interpolation and concatenation with parameterized queries using Django's DB cursor execute API, which safely escapes the user-supplied username from the session. This addresses the three reported SQL injection findings while preserving existing logic and return values.",
+  "review_notes": "Verify that the database backend (SQLite via Django) supports the %s placeholder syntax used with cursor.execute. Ensure that any existing tests expecting the old raw SQL strings still pass, and confirm that logger output remains appropriate. No changes outside the editable range were required."
+}

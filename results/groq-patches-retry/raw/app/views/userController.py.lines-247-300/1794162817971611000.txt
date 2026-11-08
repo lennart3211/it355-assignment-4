@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0024"],
+  "edits": [
+    {
+      "start_line": 259,
+      "end_line": 261,
+      "replacement": "            sql = \"SELECT totp_secret FROM users WHERE username = %s\"\n            logger.info(\"Executing parameterized query for TOTP secret\")\n            cursor.execute(sql, [username])"
+    }
+  ],
+  "explanation": "Replaced string concatenation with a parameterized SQL query using the Django DB cursor API to prevent SQL injection via the session-supplied username.",
+  "review_notes": "Verify that the database backend accepts %s placeholders (standard for Django). Ensure that 'username' is always a string; if None, handle appropriately before executing. Confirm that logging of the raw query does not expose sensitive data."
+}

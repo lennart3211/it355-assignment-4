@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0025"],
+  "edits": [
+    {
+      "start_line": 340,
+      "end_line": 342,
+      "replacement": "        with connection.cursor() as cursor:\n            sqlQuery = \"SELECT username FROM users WHERE username = %s\"\n            cursor.execute(sqlQuery, [username])"
+    }
+  ],
+  "explanation": "Replaced string interpolation with a parameterized query using Django's DB cursor placeholder %s and passing the username as a separate parameter, eliminating SQL injection risk.",
+  "review_notes": "Ensure that the database backend supports %s placeholders (default for Django's SQLite backend). Verify that any surrounding code expecting raw SQL strings is compatible. No other changes required."
+}

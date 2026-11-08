@@ -1,0 +1,40 @@
+--- a/app/views/userController.py
++++ b/app/views/userController.py
+@@ -491,7 +491,8 @@
+         with connection.cursor() as cursor:    
+             # Find the Blabbers that this user listens to
+             logger.info(sqlMyHecklers)
+-            cursor.execute(sqlMyHecklers % username)
++            # Use parameterized query to avoid SQL injection
++            cursor.execute(sqlMyHecklers, [username])
+             myHecklersResults = cursor.fetchall()
+             hecklers=[]
+             for i in myHecklersResults:
+@@ -507,20 +508,22 @@
+             # Get the audit trail for this user
+             events = []
+ 
+-            # START EXAMPLE VULNERABILITY 
+-            sqlMyEvents = "select event from users_history where blabber=\"" + username + "\" ORDER BY eventid DESC; "
++            # START EXAMPLE VULNERABILITY (fixed)
++            sqlMyEvents = "SELECT event FROM users_history WHERE blabber = %s ORDER BY eventid DESC;"
+             logger.info(sqlMyEvents)
+-            cursor.execute(sqlMyEvents)
++            cursor.execute(sqlMyEvents, [username])
+             userHistoryResult = cursor.fetchall()
++            # END EXAMPLE VULNERABILITY
+             # END EXAMPLE VULNERABILITY 
+ 
+             for result in userHistoryResult :
+                 events.append(result[0])
+ 
+             # Get the users information
+-            sql = "SELECT username, real_name, blab_name, totp_secret FROM users WHERE username = '" + username + "'"
++            # Get the users information (fixed)
++            sql = "SELECT username, real_name, blab_name, totp_secret FROM users WHERE username = %s"
+             logger.info(sql)
+-            cursor.execute(sql)
++            cursor.execute(sql, [username])
+             myInfoResults = cursor.fetchone()
+             if not myInfoResults:
+                 return JsonResponse({'message':'Error, no Inforesults found'})

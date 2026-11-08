@@ -1,0 +1,13 @@
+--- a/app/views/userController.py
++++ b/app/views/userController.py
+@@ -338,8 +338,8 @@
+     logger.info("Creating the Database connection")
+     try:
+         with connection.cursor() as cursor:
+-            sqlQuery = "SELECT username FROM users WHERE username = '" + username + "'"
+-            cursor.execute(sqlQuery)
++            sqlQuery = "SELECT username FROM users WHERE username = %s"
++            cursor.execute(sqlQuery, [username])
+             row = cursor.fetchone()
+             if (row):
+                 request.error = "Username '" + username + "' already exists!"

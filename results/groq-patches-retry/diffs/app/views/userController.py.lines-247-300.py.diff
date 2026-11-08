@@ -1,0 +1,15 @@
+--- a/app/views/userController.py
++++ b/app/views/userController.py
+@@ -256,9 +256,9 @@
+         
+         with connection.cursor() as cursor:
+         
+-            sql = "SELECT totp_secret FROM users WHERE username = '" + username + "'"
+-            logger.info(sql)
+-            cursor.execute(sql)
++            sql = "SELECT totp_secret FROM users WHERE username = %s"
++            logger.info("Executing parameterized query for TOTP secret")
++            cursor.execute(sql, [username])
+ 
+             result = cursor.fetchone()
+             if result:
