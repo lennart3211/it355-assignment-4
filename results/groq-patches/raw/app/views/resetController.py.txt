@@ -1,0 +1,13 @@
+{
+  "status":"patch_proposed",
+  "addressed_finding_ids":["F0018","F0019"],
+  "edits":[
+    {
+      "start_line":63,
+      "end_line":66,
+      "replacement":"        # Use secure HTTPS request without disabling certificate verification\n        h = httplib2.Http(\".cache\")\n        # No hard‑coded credentials; authentication should be handled elsewhere\n        try:\n            resp, content = h.request(\"https://localhost/\", method='GET')\n        except Exception as e:\n            logger.error(\"Failed to perform health check request: %s\", e)\n            resp, content = None, None\n        return resp, content"
+    }
+  ],
+  "explanation":"Replaced the insecure HTTP client that disabled SSL verification and used hard‑coded credentials with a secure httplib2 client that verifies certificates, uses HTTPS, and removes embedded credentials. Added error handling and logging.",
+  "review_notes":"Verify that the target service supports HTTPS on localhost; adjust the URL if needed. Ensure that removing the credentials does not break intended authentication flow elsewhere."
+}

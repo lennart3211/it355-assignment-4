@@ -1,0 +1,48 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0008","F0009","F0010","F0011","F0012","F0013","F0014","F0015"],
+  "edits": [
+    {
+      "start_line": 49,
+      "end_line": 52,
+      "replacement": "                logger.info(\"Executing query to get all 'Blabs for me'\")\n                blabsForMe = sqlBlabsForMe.format(10, 0)\n                # use parameter binding for username\n                cursor.execute(blabsForMe, [username])\n                blabsForMeResults = cursor.fetchall()"
+    },
+    {
+      "start_line": 74,
+      "end_line": 76,
+      "replacement": "                logger.info(\"Executing query to get all of user's Blabs\")\n                # use parameter binding for username\n                cursor.execute(sqlBlabsByMe, [username])\n                blabsByMeResults = cursor.fetchall()"
+    },
+    {
+      "start_line": 116,
+      "end_line": 120,
+      "replacement": "                logger.info(\"Creating query to add new Blab\")\n                addBlabSql = \"INSERT INTO blabs (blabber, content, timestamp) values (%s, %s, datetime('now'));\"\n                logger.info(\"Executing query to add new blab\")\n                cursor.execute(addBlabSql, [username, blab])"
+    },
+    {
+      "start_line": 199,
+      "end_line": 203,
+      "replacement": "                logger.info(\"Executing query to see Blab details\")\n                cursor.execute(blabDetailsSql, [blabid])\n                blabDetailsResults = cursor.fetchone()"
+    },
+    {
+      "start_line": 209,
+      "end_line": 212,
+      "replacement": "                logger.info(\"Executing query to get all comments\")\n                cursor.execute(blabCommentsSql, [blabid])\n                blabCommentsResults = cursor.fetchall()"
+    },
+    {
+      "start_line": 250,
+      "end_line": 257,
+      "replacement": "                logger.info(\"Executing addComment\")\n                addCommentSql = \"INSERT INTO comments (blabid, blabber, content, timestamp) values (%s, %s, %s, %s);\"\n                cursor.execute(addCommentSql, [blabid, username, comment, moment.now().format(\"YYYY-MM-DD hh:mm:ss\")])"
+    },
+    {
+      "start_line": 288,
+      "end_line": 301,
+      "replacement": "                blabbersSql = (\"SELECT users.username, users.blab_name, users.created_at, \"\n                               \"SUM(iif(listeners.listener=%s, 1, 0)) as listeners, \"\n                               \"SUM(iif(listeners.status='Active',1,0)) as listening \"\n                               \"FROM users LEFT JOIN listeners ON users.username = listeners.blabber \"\n                               \"WHERE users.username NOT IN (\\\"admin\\\",\\\"admin-totp\\\",%s) \"\n                               \"GROUP BY users.username ORDER BY \" + sort + \";\")\n                logger.info(blabbersSql)\n                logger.info(\"Executing query to see Blab details\")\n                cursor.execute(blabbersSql, [username, username])\n                blabbersResults = cursor.fetchall()"
+    },
+    {
+      "start_line": 345,
+      "end_line": 351,
+      "replacement": "                logger.info(\"Creating database connection\")\n                # safe command dispatch without eval\n                command_map = {\n                    \"blabber\": BlabberCommand,\n                    \"ignore\": IgnoreCommand,\n                    \"listen\": ListenCommand,\n                }\n                module_name = command.capitalize()[:-1] + \"Command\"\n                cmdClass = command_map.get(command.lower())\n                if not cmdClass:\n                    logger.error(f\"Unknown command '{command}'\")\n                    raise ValueError(\"Invalid command\")\n                cmdObj = cmdClass(cursor, username)\n                cmdObj.execute(blabberUsername)\n                return redirect('blabbers')"
+    }
+  ],
+  "explanation": "Replaced all string‑format SQL constructions with Django DB cursor parameter binding to eliminate injection vectors. Introduced safe command dispatch using an explicit mapping instead of eval for the dynamic command execution. Adjusted query strings to keep existing functionality while using placeholders for user‑controlled values.",
+  "review_notes": "Verify that the placeholder syntax (%s) matches the database backend (SQLite uses ? placeholders; adjust if needed). Ensure the command_map includes all valid commands used by the application. Test that the modified queries still return correct results and that sort ordering remains functional. Confirm that moment.now().format string is correctly passed as a parameter."
+}

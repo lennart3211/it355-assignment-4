@@ -1,0 +1,18 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0007"],
+  "edits": [
+    {
+      "start_line": 2,
+      "end_line": 2,
+      "replacement": "import hashlib\nfrom django.contrib.auth.hashers import make_password"
+    },
+    {
+      "start_line": 25,
+      "end_line": 29,
+      "replacement": "def create(userName, blabName, realName):\n    # Use the username as initial password (for legacy behavior) but hash it securely\n    raw_password = userName\n    # Django's make_password applies a strong algorithm with a unique salt\n    hashed_password = make_password(raw_password)\n    dateCreated = moment.now().format(\"YYYY-MM-DD hh:mm:ss\")\n    lastLogin = None\n    return User(userName, hashed_password, userName, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)"
+    }
+  ],
+  "explanation": "Replaced the insecure MD5 hash with Django's make_password, which uses a strong, salted algorithm (PBKDF2 by default). Added the necessary import. This mitigates the CWE-327 risk while preserving the function's original interface and behavior.",
+  "review_notes": "Verify that the User model's password field length can accommodate the longer hashed string (default Django hash length). Ensure any existing code that expects the password to be raw or MD5‑hashed is updated accordingly. Test user creation and authentication flows after the change."
+}

@@ -1,0 +1,27 @@
+--- a/app/models.py
++++ b/app/models.py
+@@ -1,5 +1,6 @@
+ # models.py defines database tables that get created, in addition to blabbers class
+ import hashlib
++from django.contrib.auth.hashers import make_password
+ import moment
+ import pyotp
+ 
+@@ -22,11 +23,14 @@
+     blab_name = models.CharField(max_length=100, null=True)
+ 
+ # Creates a new user from just username, blabname, and realname
+-def create(userName, blabName,realName):
+-    password = userName
++def create(userName, blabName, realName):
++    # Use the username as initial password (for legacy behavior) but hash it securely
++    raw_password = userName
++    # Django's make_password applies a strong algorithm with a unique salt
++    hashed_password = make_password(raw_password)
+     dateCreated = moment.now().format("YYYY-MM-DD hh:mm:ss")
+     lastLogin = None
+-    return User(userName, hashlib.md5(password.encode('utf-8')).hexdigest(), userName, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)
++    return User(userName, hashed_password, userName, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)
+ 
+ # Table for a blab, which is a message on the website
+ class Blab(models.Model):

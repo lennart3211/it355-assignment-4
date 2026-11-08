@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0003", "F0004", "F0005"],
+  "edits": [
+    {
+      "start_line": 19,
+      "end_line": 32,
+      "replacement": "        sqlQuery = \"INSERT INTO listeners (blabber, listener, status) values (%s, %s, 'Active');\"\n        self.logger.info(sqlQuery)\n        try:\n            # Parameterized execution to prevent SQL injection\n            self.cursor.execute(sqlQuery, (blabberUsername, self.username))\n\n            sqlQuery = \"SELECT blab_name FROM users WHERE username = %s\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (blabberUsername,))\n            result = self.cursor.fetchone()\n\n            event = f\"{self.username} started listening to {blabberUsername} ({result[0]})\"\n            sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (%s, %s)\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (self.username, event))"
+    }
+  ],
+  "explanation": "Replaced string interpolation and concatenation with parameterized queries for all three SQL statements, eliminating injection vectors identified in findings F0003, F0004, and F0005. Also used an f-string for safe construction of the event message without affecting SQL safety.",
+  "review_notes": "Verify that the database driver used by `self.cursor` supports the %s placeholder style (e.g., MySQLdb, psycopg2). Adjust placeholder syntax if a different paramstyle is required. Ensure that the surrounding try/except block still behaves as intended and that any logging of raw queries does not expose sensitive data."
+}

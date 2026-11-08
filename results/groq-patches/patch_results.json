@@ -1,0 +1,835 @@
+[
+  {
+    "file": "app/admin.py",
+    "model_id": "openai/gpt-oss-120b",
+    "source_sha256": "8edca0db111f019e39ea84081dc34c705ae0c41af638501a5457376e6ec493a6",
+    "findings": [
+      {
+        "start_line": 7,
+        "end_line": 7,
+        "function": "UserAdmin",
+        "cwe_id": "CWE-522",
+        "cwe_name": "Insufficiently Protected Credentials",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The admin list_display includes the 'password' field, exposing stored password hashes to any admin user, leading to credential disclosure.",
+        "vulnerable_snippet": "    list_display = ['username', 'password']",
+        "file": "app/admin.py",
+        "model": "groq",
+        "finding_id": "F0001"
+      }
+    ],
+    "status": "patch_proposed",
+    "verification_status": "pending",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0001"
+      ],
+      "edits": [
+        {
+          "start_line": 7,
+          "end_line": 7,
+          "replacement": "    list_display = ['username']"
+        }
+      ],
+      "explanation": "Removed 'password' from UserAdmin.list_display to prevent exposing password hashes in the admin interface, addressing CWE-522.",
+      "review_notes": "Verify that no other admin components rely on the password field being displayed. Ensure that removing it does not affect required functionality."
+    },
+    "syntax_check": "passed",
+    "candidate_path": "candidates/app/admin.py",
+    "diff_path": "diffs/app/admin.py.diff"
+  },
+  {
+    "file": "app/commands/IgnoreCommand.py",
+    "model_id": "openai/gpt-oss-120b",
+    "source_sha256": "a7c65dbaab2f8c9f9a43ee3b257c6b01d7baa45b215b841a7aa841994f358c07",
+    "findings": [
+      {
+        "start_line": 19,
+        "end_line": 23,
+        "function": "execute",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "User-controlled blabberUsername and username are interpolated directly into SQL strings via % formatting and concatenation, allowing injection attacks that could modify or delete data.",
+        "vulnerable_snippet": "sqlQuery = \"DELETE FROM listeners WHERE blabber='%s' AND listener='%s';\"\nself.cursor.execute(sqlQuery % (blabberUsername, self.username))\n\nsqlQuery = \"SELECT blab_name FROM users WHERE username = '\" + blabberUsername + \"'\"\nself.cursor.execute(sqlQuery)\n\nsqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (\\\"\" + self.username + \"\\\", \\\"\" + event + \"\\\")\"",
+        "file": "app/commands/IgnoreCommand.py",
+        "model": "groq",
+        "finding_id": "F0002"
+      }
+    ],
+    "status": "invalid_proposal",
+    "verification_status": "pending",
+    "error": "invalid syntax (IgnoreCommand.py, line 34)"
+  },
+  {
+    "file": "app/commands/ListenCommand.py",
+    "model_id": "openai/gpt-oss-120b",
+    "source_sha256": "ef4ada3f8c511149d3e786920ac502474d235a9f5cf1587d85093265d8084a92",
+    "findings": [
+      {
+        "start_line": 22,
+        "end_line": 22,
+        "function": "execute",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "User-controlled blabberUsername and username are interpolated into SQL query via string formatting, allowing injection.",
+        "vulnerable_snippet": "self.cursor.execute(sqlQuery % (blabberUsername, self.username))",
+        "file": "app/commands/ListenCommand.py",
+        "model": "groq",
+        "finding_id": "F0003"
+      },
+      {
+        "start_line": 24,
+        "end_line": 27,
+        "function": "execute",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "blabberUsername is concatenated directly into SELECT statement, enabling injection.",
+        "vulnerable_snippet": "sqlQuery = \"SELECT blab_name FROM users WHERE username = '\" + blabberUsername + \"'\"\nself.logger.info(sqlQuery)\nself.cursor.execute(sqlQuery)",
+        "file": "app/commands/ListenCommand.py",
+        "model": "groq",
+        "finding_id": "F0004"
+      },
+      {
+        "start_line": 30,
+        "end_line": 32,
+        "function": "execute",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "Self.username and event are concatenated into INSERT statement without sanitization, permitting injection.",
+        "vulnerable_snippet": "sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (\\\"\" + self.username + \"\\\", \\\"\" + event + \"\\\")\"\nself.logger.info(sqlQuery)\nself.cursor.execute(sqlQuery)",
+        "file": "app/commands/ListenCommand.py",
+        "model": "groq",
+        "finding_id": "F0005"
+      }
+    ],
+    "status": "patch_proposed",
+    "verification_status": "pending",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0003",
+        "F0004",
+        "F0005"
+      ],
+      "edits": [
+        {
+          "start_line": 19,
+          "end_line": 32,
+          "replacement": "        sqlQuery = \"INSERT INTO listeners (blabber, listener, status) values (%s, %s, 'Active');\"\n        self.logger.info(sqlQuery)\n        try:\n            # Parameterized execution to prevent SQL injection\n            self.cursor.execute(sqlQuery, (blabberUsername, self.username))\n\n            sqlQuery = \"SELECT blab_name FROM users WHERE username = %s\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (blabberUsername,))\n            result = self.cursor.fetchone()\n\n            event = f\"{self.username} started listening to {blabberUsername} ({result[0]})\"\n            sqlQuery = \"INSERT INTO users_history (blabber, event) VALUES (%s, %s)\"\n            self.logger.info(sqlQuery)\n            self.cursor.execute(sqlQuery, (self.username, event))"
+        }
+      ],
+      "explanation": "Replaced string interpolation and concatenation with parameterized queries for all three SQL statements, eliminating injection vectors identified in findings F0003, F0004, and F0005. Also used an f-string for safe construction of the event message without affecting SQL safety.",
+      "review_notes": "Verify that the database driver used by `self.cursor` supports the %s placeholder style (e.g., MySQLdb, psycopg2). Adjust placeholder syntax if a different paramstyle is required. Ensure that the surrounding try/except block still behaves as intended and that any logging of raw queries does not expose sensitive data."
+    },
+    "syntax_check": "passed",
+    "candidate_path": "candidates/app/commands/ListenCommand.py",
+    "diff_path": "diffs/app/commands/ListenCommand.py.diff"
+  },
+  {
+    "file": "app/migrations/0001_initial.py",
+    "model_id": "openai/gpt-oss-120b",
+    "source_sha256": "a7ca220f2b464a92389fff325656255a2556a27c7dd3f78764951a54c510824d",
+    "findings": [
+      {
+        "start_line": 66,
+        "end_line": 68,
+        "function": "",
+        "cwe_id": "CWE-256",
+        "cwe_name": "Plaintext Storage of Sensitive Data",
+        "severity": "High",
+        "confidence": "High",
+        "description": "User model stores passwords and password hints in CharField without hashing or encryption, exposing credentials if database is compromised.",
+        "vulnerable_snippet": "('username', models.CharField(max_length=100, primary_key=True, serialize=False)),\n('password', models.CharField(max_length=100, null=True)),\n('password_hint', models.CharField(max_length=100, null=True))",
+        "file": "app/migrations/0001_initial.py",
+        "model": "groq",
+        "finding_id": "F0006"
+      }
+    ],
+    "status": "invalid_proposal",
+    "verification_status": "pending",
+    "error": "A non-patch response must have empty edits and IDs."
+  },
+  {
+    "file": "app/models.py",
+    "model_id": "openai/gpt-oss-120b",
+    "source_sha256": "fc19b965ea72dffd58b707d0862a926911213b486dd0992d0f41a073b9c6f3b1",
+    "findings": [
+      {
+        "start_line": 25,
+        "end_line": 30,
+        "function": "create",
+        "cwe_id": "CWE-327",
+        "cwe_name": "Use of Broken or Risky Cryptographic Algorithm",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The create function hashes the user password using MD5, a broken cryptographic hash, and stores it directly without a salt, leading to compromised password storage.",
+        "vulnerable_snippet": "    29|     return User(userName, hashlib.md5(password.encode('utf-8')).hexdigest(), userName, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)",
+        "file": "app/models.py",
+        "model": "groq",
+        "finding_id": "F0007"
+      }
+    ],
+    "status": "patch_proposed",
+    "verification_status": "pending",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0007"
+      ],
+      "edits": [
+        {
+          "start_line": 2,
+          "end_line": 2,
+          "replacement": "import hashlib\nfrom django.contrib.auth.hashers import make_password"
+        },
+        {
+          "start_line": 25,
+          "end_line": 29,
+          "replacement": "def create(userName, blabName, realName):\n    # Use the username as initial password (for legacy behavior) but hash it securely\n    raw_password = userName\n    # Django's make_password applies a strong algorithm with a unique salt\n    hashed_password = make_password(raw_password)\n    dateCreated = moment.now().format(\"YYYY-MM-DD hh:mm:ss\")\n    lastLogin = None\n    return User(userName, hashed_password, userName, pyotp.random_base32(), dateCreated, lastLogin, realName, blabName)"
+        }
+      ],
+      "explanation": "Replaced the insecure MD5 hash with Django's make_password, which uses a strong, salted algorithm (PBKDF2 by default). Added the necessary import. This mitigates the CWE-327 risk while preserving the function's original interface and behavior.",
+      "review_notes": "Verify that the User model's password field length can accommodate the longer hashed string (default Django hash length). Ensure any existing code that expects the password to be raw or MD5\u2011hashed is updated accordingly. Test user creation and authentication flows after the change."
+    },
+    "syntax_check": "passed",
+    "candidate_path": "candidates/app/models.py",
+    "diff_path": "diffs/app/models.py.diff"
+  },
+  {
+    "file": "app/views/blabController.py",
+    "model_id": "openai/gpt-oss-120b",
+    "source_sha256": "990cfd856e79f048a2aa5147dc44d548090bc74b35f31749b45f78598c765eec",
+    "findings": [
+      {
+        "start_line": 50,
+        "end_line": 52,
+        "function": "feed",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "User-supplied username is interpolated into SQL query via string formatting (sqlBlabsForMe.format then % operator) without sanitization, allowing injection.",
+        "vulnerable_snippet": "blabsForMe = sqlBlabsForMe.format(10, 0)\ncursor.execute(blabsForMe % (username,))",
+        "file": "app/views/blabController.py",
+        "model": "groq",
+        "finding_id": "F0008"
+      },
+      {
+        "start_line": 75,
+        "end_line": 76,
+        "function": "feed",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "Username is directly inserted into sqlBlabsByMe using % formatting, enabling injection.",
+        "vulnerable_snippet": "cursor.execute(sqlBlabsByMe % (username,))",
+        "file": "app/views/blabController.py",
+        "model": "groq",
+        "finding_id": "F0009"
+      },
+      {
+        "start_line": 119,
+        "end_line": 121,
+        "function": "feed",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "POST parameter 'blab' and session username are concatenated into INSERT statement via % formatting, allowing injection of arbitrary SQL.",
+        "vulnerable_snippet": "addBlabSql = \"INSERT INTO blabs (blabber, content, timestamp) values ('%s', '%s', datetime('now'));\"\ncursor.execute(addBlabSql % (username, blab))",
+        "file": "app/views/blabController.py",
+        "model": "groq",
+        "finding_id": "F0010"
+      },
+      {
+        "start_line": 200,
+        "end_line": 203,
+        "function": "blab",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "blabid from GET parameters is interpolated into SELECT query via % formatting, permitting injection.",
+        "vulnerable_snippet": "cursor.execute(blabDetailsSql % (blabid,))\nblabDetailsResults = cursor.fetchone()",
+        "file": "app/views/blabController.py",
+        "model": "groq",
+        "finding_id": "F0011"
+      },
+      {
+        "start_line": 210,
+        "end_line": 212,
+        "function": "blab",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "blabid from GET is used in comment query without sanitization, enabling injection.",
+        "vulnerable_snippet": "cursor.execute(blabCommentsSql % (blabid,))\nblabCommentsResults = cursor.fetchall()",
+        "file": "app/views/blabController.py",
+        "model": "groq",
+        "finding_id": "F0012"
+      },
+      {
+        "start_line": 256,
+        "end_line": 258,
+        "function": "blab",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "User-supplied comment, blabid, and username are directly formatted into INSERT statement, allowing injection.",
+        "vulnerable_snippet": "cursor.execute(addCommentSql % (blabid, username, comment, moment.now().format(\"YYYY-MM-DD hh:mm:ss\")))",
+        "file": "app/views/blabController.py",
+        "model": "groq",
+        "finding_id": "F0013"
+      },
+      {
+        "start_line": 298,
+        "end_line": 301,
+        "function": "blabbers",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "Username from session is interpolated into complex SELECT query via % formatting, permitting injection.",
+        "vulnerable_snippet": "logger.info(blabbersSql)\ncursor.execute(blabbersSql % (username, username))\nblabbersResults = cursor.fetchall()",
+        "file": "app/views/blabController.py",
+        "model": "groq",
+        "finding_id": "F0014"
+      },
+      {
+        "start_line": 347,
+        "end_line": 350,
+        "function": "blabbers",
+        "cwe_id": "CWE-94",
+        "cwe_name": "Improper Control of Generation of Code ('Code Injection')",
+        "severity": "Critical",
+        "confidence": "High",
+        "description": "Command parameter from POST is used to construct class name and eval'ed, allowing an attacker to execute arbitrary code.",
+        "vulnerable_snippet": "module = command.capitalize()[:-1] + \"Command\"\ncmdClass = eval(module)\ncmdObj = cmdClass(cursor, username)\ncmdObj.execute(blabberUsername)",
+        "file": "app/views/blabController.py",
+        "model": "groq",
+        "finding_id": "F0015"
+      },
+      {
+        "start_line": 272,
+        "end_line": 276,
+        "function": "blabbers",
+        "cwe_id": "CWE-352",
+        "cwe_name": "Cross-Site Request Forgery (CSRF)",
+        "severity": "Medium",
+        "confidence": "Medium",
+        "description": "The view is decorated with @csrf_exempt, disabling CSRF protection for state-changing POST requests, enabling CSRF attacks.",
+        "vulnerable_snippet": "@csrf_exempt\ndef blabbers(request):\n    if request.method == \"GET\":\n        sort = request.GET.get('sort')",
+        "file": "app/views/blabController.py",
+        "model": "groq",
+        "finding_id": "F0016"
+      }
+    ],
+    "status": "invalid_proposal",
+    "verification_status": "pending",
+    "error": "unexpected indent (blabController.py, line 212)"
+  },
+  {
+    "file": "app/views/homeController.py",
+    "model_id": "openai/gpt-oss-120b",
+    "source_sha256": "28e620512a963d428a7f5dc29d409947727bfa0cf08bc631fa13aa37907f37d8",
+    "findings": [
+      {
+        "start_line": 13,
+        "end_line": 16,
+        "function": "home",
+        "cwe_id": "CWE-918",
+        "cwe_name": "Server Side Request Forgery (SSRF)",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The code builds a URL using the untrusted HTTP_HOST header and SERVER_PORT, then performs a server-side request with urllib, allowing an attacker to cause the server to make arbitrary HTTP requests.",
+        "vulnerable_snippet": "host_ip = request.META['HTTP_HOST'].split(':')[0]\nredir = urllib.request.Request('http://' + host_ip + ':' + request.META['SERVER_PORT'] + '/feed')\nurllib.request.urlopen(redir, timeout=5)",
+        "file": "app/views/homeController.py",
+        "model": "groq",
+        "finding_id": "F0017"
+      }
+    ],
+    "status": "invalid_proposal",
+    "verification_status": "pending",
+    "error": "invalid syntax (homeController.py, line 13)"
+  },
+  {
+    "file": "app/views/resetController.py",
+    "model_id": "openai/gpt-oss-120b",
+    "source_sha256": "e2c36196b23f143b9b1697b732325a93e39ad4995a023f6831304344c2afc5d0",
+    "findings": [
+      {
+        "start_line": 63,
+        "end_line": 66,
+        "function": "reset",
+        "cwe_id": "CWE-295",
+        "cwe_name": "Improper Certificate Validation",
+        "severity": "High",
+        "confidence": "High",
+        "description": "disable_ssl_certificate_validation=True disables TLS certificate verification, allowing man\u2011in\u2011the\u2011middle attacks when making HTTP requests.",
+        "vulnerable_snippet": "63|         h = httplib2.Http(\".cache\", disable_ssl_certificate_validation=True) #CWE-295",
+        "file": "app/views/resetController.py",
+        "model": "groq",
+        "finding_id": "F0018"
+      },
+      {
+        "start_line": 64,
+        "end_line": 64,
+        "function": "reset",
+        "cwe_id": "CWE-798",
+        "cwe_name": "Use of Hard-coded Credentials",
+        "severity": "Medium",
+        "confidence": "High",
+        "description": "Hard\u2011coded username and password are added to the HTTP client, exposing credentials in source code.",
+        "vulnerable_snippet": "64|         h.add_credentials('thiswaskevinsidea','hardcode') #CWE-798",
+        "file": "app/views/resetController.py",
+        "model": "groq",
+        "finding_id": "F0019"
+      }
+    ],
+    "status": "patch_proposed",
+    "verification_status": "pending",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0018",
+        "F0019"
+      ],
+      "edits": [
+        {
+          "start_line": 63,
+          "end_line": 66,
+          "replacement": "        # Use secure HTTPS request without disabling certificate verification\n        h = httplib2.Http(\".cache\")\n        # No hard\u2011coded credentials; authentication should be handled elsewhere\n        try:\n            resp, content = h.request(\"https://localhost/\", method='GET')\n        except Exception as e:\n            logger.error(\"Failed to perform health check request: %s\", e)\n            resp, content = None, None\n        return resp, content"
+        }
+      ],
+      "explanation": "Replaced the insecure HTTP client that disabled SSL verification and used hard\u2011coded credentials with a secure httplib2 client that verifies certificates, uses HTTPS, and removes embedded credentials. Added error handling and logging.",
+      "review_notes": "Verify that the target service supports HTTPS on localhost; adjust the URL if needed. Ensure that removing the credentials does not break intended authentication flow elsewhere."
+    },
+    "syntax_check": "passed",
+    "candidate_path": "candidates/app/views/resetController.py",
+    "diff_path": "diffs/app/views/resetController.py.diff"
+  },
+  {
+    "file": "app/views/toolsController.py",
+    "model_id": "openai/gpt-oss-120b",
+    "source_sha256": "4b8b282dc966bbb61410d184fd141c7f88afdeec7237ab730dae37d17cc76d7b",
+    "findings": [
+      {
+        "start_line": 66,
+        "end_line": 69,
+        "function": "fortune",
+        "cwe_id": "CWE-78",
+        "cwe_name": "OS Command Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "User-controlled 'file' parameter is passed to os.system in a formatted string without validation, allowing execution of arbitrary OS commands.",
+        "vulnerable_snippet": "    else:\n        os.system(f'cat {file}')",
+        "file": "app/views/toolsController.py",
+        "model": "groq",
+        "finding_id": "F0020"
+      }
+    ],
+    "status": "patch_proposed",
+    "verification_status": "pending",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0020"
+      ],
+      "edits": [
+        {
+          "start_line": 66,
+          "end_line": 69,
+          "replacement": "    # OS Command Injection CWE-78 \u2013 replaced insecure os.system call with safe file handling\n    else:\n        # Restrict to files within the allowed tools directory to prevent arbitrary command execution\n        allowed_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), \"..\", \"tools\"))\n        safe_path = os.path.abspath(os.path.join(allowed_dir, file))\n        if not safe_path.startswith(allowed_dir):\n            logger.warning(f\"Attempted access to disallowed file: {file}\")\n            return \"\"\n        try:\n            with open(safe_path, \"r\") as f:\n                return f.read()\n        except Exception as e:\n            logger.error(\"Error reading file\", e)\n            return \"\""
+        }
+      ],
+      "explanation": "Replaced the insecure os.system call that directly executed a user\u2011controlled filename with a whitelist\u2011based file read. The code now builds an absolute path inside a dedicated tools directory, verifies the path does not escape that directory, and reads the file contents safely using Python I/O, eliminating command injection risk.",
+      "review_notes": "Verify that the chosen allowed_dir (../tools relative to this file) matches the actual location of files intended to be served. Ensure that returning the file contents as a string aligns with the rest of the application logic. Check that the logger calls and error handling meet the project's logging standards."
+    },
+    "syntax_check": "passed",
+    "candidate_path": "candidates/app/views/toolsController.py",
+    "diff_path": "diffs/app/views/toolsController.py.diff"
+  },
+  {
+    "file": "app/views/userController.py",
+    "model_id": "openai/gpt-oss-120b",
+    "source_sha256": "a5fca0de5badf38d34bc29fd3ca7c6e5f0c9813ae1ea6278804f4e93094fa847",
+    "findings": [
+      {
+        "start_line": 102,
+        "end_line": 106,
+        "function": "login",
+        "cwe_id": "CWE-89",
+        "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+        "severity": "High",
+        "confidence": "High",
+        "description": "User-supplied username and password are concatenated into an SQL query without parameterization, allowing SQL injection.",
+        "vulnerable_snippet": "                sqlQuery = \"select username, password, password_hint, created_at, last_login, \\n                            real_name, blab_name from users where username='\" + username + \"' \\n                            and password='\" + hashlib.md5(password.encode('utf-8')).hexdigest() + \"';\"",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0021"
+      },
+      {
+        "start_line": 184,
+        "end_line": 186,
+        "function": "showPasswordHint",
+        "cwe_id": "CWE-89",
+        "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The username parameter from GET is directly concatenated into an SQL query, enabling SQL injection.",
+        "vulnerable_snippet": "            sql = \"SELECT password_hint FROM users WHERE username = '\" + username + \"'\"\n            logger.info(sql)\n            cursor.execute(sql)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0022"
+      },
+      {
+        "start_line": 225,
+        "end_line": 227,
+        "function": "showTotp",
+        "cwe_id": "CWE-89",
+        "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The username from session is concatenated into an SQL query without sanitization, permitting SQL injection.",
+        "vulnerable_snippet": "            sql = \"SELECT totp_secret FROM users WHERE username = '\" + username + \"'\"\n            logger.info(sql)\n            cursor.execute(sql)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0023"
+      },
+      {
+        "start_line": 259,
+        "end_line": 261,
+        "function": "processTotp",
+        "cwe_id": "CWE-89",
+        "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The username from session is concatenated into an SQL query, leading to possible SQL injection.",
+        "vulnerable_snippet": "            sql = \"SELECT totp_secret FROM users WHERE username = '\" + username + \"'\"\n            logger.info(sql)\n            cursor.execute(sql)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0024"
+      },
+      {
+        "start_line": 341,
+        "end_line": 342,
+        "function": "processRegister",
+        "cwe_id": "CWE-89",
+        "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The username from POST is directly interpolated into an SQL statement, allowing SQL injection.",
+        "vulnerable_snippet": "            sqlQuery = \"SELECT username FROM users WHERE username = '\" + username + \"'\"\n            cursor.execute(sqlQuery)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0025"
+      },
+      {
+        "start_line": 68,
+        "end_line": 70,
+        "function": "login",
+        "cwe_id": "CWE-502",
+        "cwe_name": "Deserialization of Untrusted Data",
+        "severity": "Critical",
+        "confidence": "High",
+        "description": "A cookie value is base64-decoded and unpickled without validation, leading to insecure deserialization attacks.",
+        "vulnerable_snippet": "            decoded = base64.b64decode(userDetailsCookie)\n            unencodedUserDetails = pickle.loads(decoded)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0026"
+      },
+      {
+        "start_line": 42,
+        "end_line": 45,
+        "function": "login",
+        "cwe_id": "CWE-601",
+        "cwe_name": "URL Redirection to Untrusted Site ('Open Redirect')",
+        "severity": "Medium",
+        "confidence": "High",
+        "description": "The 'target' parameter from the request is used directly in redirect() without validation, enabling open redirect attacks.",
+        "vulnerable_snippet": "            if (target != None) and (target) and (not target == \"null\"):\n                return redirect(target)\n            else:\n                return redirect('feed')",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0027"
+      },
+      {
+        "start_line": 91,
+        "end_line": 96,
+        "function": "login",
+        "cwe_id": "CWE-601",
+        "cwe_name": "URL Redirection to Untrusted Site ('Open Redirect')",
+        "severity": "Medium",
+        "confidence": "High",
+        "description": "The 'target' POST parameter is used directly in redirect(), allowing open redirect.",
+        "vulnerable_snippet": "        if (target != None) and (target) and (not target == \"null\"):\n            nextView = target\n            response = redirect(nextView)\n        else:\n            nextView = 'feed'\n            response = redirect(nextView)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0028"
+      },
+      {
+        "start_line": 129,
+        "end_line": 130,
+        "function": "login",
+        "cwe_id": "CWE-326",
+        "cwe_name": "Inadequate Encryption Strength",
+        "severity": "High",
+        "confidence": "Medium",
+        "description": "A newly generated RSA private key is stored directly in a cookie, exposing sensitive cryptographic material.",
+        "vulnerable_snippet": "                response.set_cookie('password', private_key)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0029"
+      },
+      {
+        "start_line": 125,
+        "end_line": 125,
+        "function": "login",
+        "cwe_id": "CWE-117",
+        "cwe_name": "Improper Output Neutralization for Logs ('Log Injection')",
+        "severity": "Low",
+        "confidence": "Medium",
+        "description": "User-controlled data is concatenated into log messages without sanitization, allowing log injection.",
+        "vulnerable_snippet": "                logger.info(\"User found\" + str(row))",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0030"
+      },
+      {
+        "start_line": 125,
+        "end_line": 125,
+        "function": "login",
+        "cwe_id": "CWE-327",
+        "cwe_name": "Use of Weak Cryptographic Algorithm",
+        "severity": "Medium",
+        "confidence": "Medium",
+        "description": "MD5 is used to hash passwords, which is a weak, broken algorithm.",
+        "vulnerable_snippet": "                and password='\" + hashlib.md5(password.encode('utf-8')).hexdigest() + \"';",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0031"
+      },
+      {
+        "start_line": 410,
+        "end_line": 418,
+        "function": "register (anonymous)",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "Critical",
+        "confidence": "High",
+        "description": "User-supplied values (username, password, realName, blabName) are concatenated into an SQL INSERT string and executed without parameterization, allowing injection.",
+        "vulnerable_snippet": "query += \"('\" + username + \"',...\"",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0032"
+      },
+      {
+        "start_line": 494,
+        "end_line": 495,
+        "function": "showProfile",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The username from the session is interpolated into a SQL query using the % operator, enabling injection if the session value is tampered with.",
+        "vulnerable_snippet": "cursor.execute(sqlMyHecklers % username)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0033"
+      },
+      {
+        "start_line": 511,
+        "end_line": 513,
+        "function": "showProfile",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "The username is concatenated directly into a SELECT statement for the audit trail, creating an injection vector.",
+        "vulnerable_snippet": "sqlMyEvents = \"select event from users_history where blabber=\\\"\" + username + \"\\\" ORDER BY eventid DESC; \"\ncursor.execute(sqlMyEvents)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0034"
+      },
+      {
+        "start_line": 521,
+        "end_line": 523,
+        "function": "showProfile",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "High",
+        "confidence": "High",
+        "description": "User-controlled username is concatenated into a SELECT query without escaping, leading to injection.",
+        "vulnerable_snippet": "sql = \"SELECT username, real_name, blab_name, totp_secret FROM users WHERE username = '\" + username + \"'\"",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0035"
+      },
+      {
+        "start_line": 734,
+        "end_line": 734,
+        "function": "usernameExists",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "Medium",
+        "confidence": "High",
+        "description": "Username is interpolated into a SELECT statement using % formatting, allowing injection if the input is not sanitized.",
+        "vulnerable_snippet": "cursor.execute(sqlStatement % (username,))",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0036"
+      },
+      {
+        "start_line": 774,
+        "end_line": 775,
+        "function": "updateUsername",
+        "cwe_id": "CWE-89",
+        "cwe_name": "SQL Injection",
+        "severity": "Critical",
+        "confidence": "High",
+        "description": "Multiple update statements concatenate newUsername and oldUsername via % formatting, enabling injection across several tables.",
+        "vulnerable_snippet": "cursor.execute(query % (newUsername,oldUsername))",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0037"
+      },
+      {
+        "start_line": 632,
+        "end_line": 636,
+        "function": "processProfile",
+        "cwe_id": "CWE-502",
+        "cwe_name": "Insecure Deserialization",
+        "severity": "Critical",
+        "confidence": "High",
+        "description": "User-controlled cookie is base64 decoded and then deserialized with pickle, allowing execution of arbitrary code if attacker controls the cookie.",
+        "vulnerable_snippet": "decoded = base64.b64decode(userDetailsCookie)\nunencodedUserDetails = pickle.loads(decoded)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0038"
+      },
+      {
+        "start_line": 559,
+        "end_line": 560,
+        "function": "processProfile",
+        "cwe_id": "CWE-79",
+        "cwe_name": "Cross-site Scripting (XSS)",
+        "severity": "Medium",
+        "confidence": "High",
+        "description": "User-supplied values are embedded in a script tag returned in JSON, leading to reflected XSS when rendered in the browser.",
+        "vulnerable_snippet": "msg = f\"<script>alert('Successfully changed values!\\\\nusername: {username.lower()}\\\\nReal Name: {realName}\\\\nBlab Name: {blabName}');</script>\"",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0039"
+      },
+      {
+        "start_line": 568,
+        "end_line": 569,
+        "function": "processProfile",
+        "cwe_id": "CWE-79",
+        "cwe_name": "Cross-site Scripting (XSS)",
+        "severity": "Medium",
+        "confidence": "Medium",
+        "description": "Error message includes a script tag that could be reflected to the client, enabling XSS.",
+        "vulnerable_snippet": "response = JsonResponse({'message':\"<script>alert('Error - please login');</script>\"},status=403)",
+        "file": "app/views/userController.py",
+        "model": "groq",
+        "finding_id": "F0040"
+      }
+    ],
+    "status": "api_error",
+    "verification_status": "pending"
+  },
+  {
+    "file": "verademo-python/settings.py",
+    "model_id": "openai/gpt-oss-120b",
+    "source_sha256": "f262ef46b6b72534ede7262e4fd09f04bc31fa7cd7a10e203b2da9e14477635e",
+    "findings": [
+      {
+        "start_line": 27,
+        "end_line": 27,
+        "function": "",
+        "cwe_id": "CWE-215",
+        "cwe_name": "Information Exposure Through Debug Information",
+        "severity": "High",
+        "confidence": "High",
+        "description": "DEBUG is set to True, exposing detailed error pages and stack traces to attackers, which can reveal sensitive information.",
+        "vulnerable_snippet": "   27| DEBUG = True",
+        "file": "verademo-python/settings.py",
+        "model": "groq",
+        "finding_id": "F0041"
+      },
+      {
+        "start_line": 30,
+        "end_line": 30,
+        "function": "",
+        "cwe_id": "CWE-20",
+        "cwe_name": "Improper Input Validation",
+        "severity": "High",
+        "confidence": "High",
+        "description": "ALLOWED_HOSTS is set to a wildcard, allowing HTTP Host header attacks and facilitating host header poisoning.",
+        "vulnerable_snippet": "   30| ALLOWED_HOSTS = ['*']",
+        "file": "verademo-python/settings.py",
+        "model": "groq",
+        "finding_id": "F0042"
+      },
+      {
+        "start_line": 49,
+        "end_line": 49,
+        "function": "",
+        "cwe_id": "CWE-352",
+        "cwe_name": "Cross-Site Request Forgery (CSRF)",
+        "severity": "Medium",
+        "confidence": "High",
+        "description": "The CSRF protection middleware is commented out, leaving the application vulnerable to CSRF attacks.",
+        "vulnerable_snippet": "   49| #'django.middleware.csrf.CsrfViewMiddleware'",
+        "file": "verademo-python/settings.py",
+        "model": "groq",
+        "finding_id": "F0043"
+      }
+    ],
+    "status": "patch_proposed",
+    "verification_status": "pending",
+    "proposal": {
+      "status": "patch_proposed",
+      "addressed_finding_ids": [
+        "F0041",
+        "F0042",
+        "F0043"
+      ],
+      "edits": [
+        {
+          "start_line": 27,
+          "end_line": 27,
+          "replacement": "DEBUG = False"
+        },
+        {
+          "start_line": 30,
+          "end_line": 30,
+          "replacement": "ALLOWED_HOSTS = []  # Populate with your domain names in production"
+        },
+        {
+          "start_line": 49,
+          "end_line": 49,
+          "replacement": "    'django.middleware.csrf.CsrfViewMiddleware',"
+        }
+      ],
+      "explanation": "Set DEBUG to False to avoid exposing detailed error information. Restrict ALLOWED_HOSTS to an empty list with a comment, requiring proper host configuration for production. Re\u2011enable the CSRF protection middleware by uncommenting it, restoring default CSRF defense.",
+      "review_notes": "Verify that the production deployment sets ALLOWED_HOSTS appropriately (e.g., ['example.com']). Ensure any custom middleware ordering remains correct after uncommenting CSRF middleware. Confirm that disabling DEBUG does not affect needed development debugging; use environment-specific settings if required."
+    },
+    "syntax_check": "passed",
+    "candidate_path": "candidates/verademo-python/settings.py",
+    "diff_path": "diffs/verademo-python/settings.py.diff"
+  }
+]

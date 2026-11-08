@@ -1,0 +1,24 @@
+--- a/verademo-python/settings.py
++++ b/verademo-python/settings.py
+@@ -24,10 +24,10 @@
+ SECRET_KEY = 'django-insecure-m(k83)=fpt1d5&(u6_$+3ppc6s7!_(9!vps5f17yqp4=6ei$vv'
+ 
+ # SECURITY WARNING: don't run with debug turned on in production!
+-DEBUG = True
++DEBUG = False
+ 
+ # allow all hosts
+-ALLOWED_HOSTS = ['*']
++ALLOWED_HOSTS = []  # Populate with your domain names in production
+ 
+ 
+ # Application definition
+@@ -46,7 +46,7 @@
+     # 'django.middleware.security.SecurityMiddleware',
+     'django.contrib.sessions.middleware.SessionMiddleware',
+     'django.middleware.common.CommonMiddleware',
+-    #'django.middleware.csrf.CsrfViewMiddleware',
++    'django.middleware.csrf.CsrfViewMiddleware',
+     'django.contrib.auth.middleware.AuthenticationMiddleware',
+     'django.contrib.messages.middleware.MessageMiddleware',
+     'django.middleware.clickjacking.XFrameOptionsMiddleware',

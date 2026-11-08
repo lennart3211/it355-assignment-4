@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0017"],
+  "edits": [
+    {
+      "start_line": 11,
+      "end_line": 17,
+      "replacement": "        # Safely redirect authenticated users to the feed without making a server‑side request\n        return redirect('feed')"
+    }
+  ],
+  "explanation": "Replaced the unsafe server‑side HTTP request that used untrusted request headers (SSRF) with a direct Django redirect, eliminating the need to construct or fetch external URLs based on client‑controlled data.",
+  "review_notes": "Verify that the 'feed' URL name resolves correctly in Django's URL configuration. Ensure any additional side‑effects previously expected from the urllib call are not required; if they were, implement them using safe internal logic."
+}

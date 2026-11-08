@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0002"],
+  "edits": [
+    {
+      "start_line": 19,
+      "end_line": 32,
+      "replacement": "        # Use parameterized queries to avoid SQL injection\n        delete_sql = \"DELETE FROM listeners WHERE blabber=? AND listener=?;\"\n        self.logger.info(delete_sql)\n        self.cursor.execute(delete_sql, (blabberUsername, self.username))\n\n        select_sql = \"SELECT blab_name FROM users WHERE username = ?\"\n        self.logger.info(select_sql)\n        self.cursor.execute(select_sql, (blabberUsername,))\n        result = self.cursor.fetchone()\n\n        event = f\"{self.username} is now ignoring {blabberUsername} ({result[0]})\"\n        insert_sql = \"INSERT INTO users_history (blabber, event) VALUES (?, ?)\"\n        self.logger.info(insert_sql)\n        self.cursor.execute(insert_sql, (self.username, event))"
+    }
+  ],
+  "explanation": "Replaced string formatting and concatenation with parameterized SQL statements using placeholders (?). This prevents injection of user-controlled data. Also switched to f-string for internal event composition while keeping logging of the SQL templates only.",
+  "review_notes": "Confirm that the database driver in use supports '?' placeholders (e.g., sqlite3). If using a different DB-API (e.g., MySQLdb, psycopg2), adjust placeholder syntax (%s) accordingly. Verify that logger.info calls do not expose sensitive data. Ensure that result is not None before accessing result[0] to avoid runtime errors."
+}

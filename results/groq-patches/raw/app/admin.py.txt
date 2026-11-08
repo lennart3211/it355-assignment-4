@@ -1,0 +1,13 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0001"],
+  "edits": [
+    {
+      "start_line": 7,
+      "end_line": 7,
+      "replacement": "    list_display = ['username']"
+    }
+  ],
+  "explanation": "Removed 'password' from UserAdmin.list_display to prevent exposing password hashes in the admin interface, addressing CWE-522.",
+  "review_notes": "Verify that no other admin components rely on the password field being displayed. Ensure that removing it does not affect required functionality."
+}

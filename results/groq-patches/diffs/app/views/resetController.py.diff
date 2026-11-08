@@ -1,0 +1,22 @@
+--- a/app/views/resetController.py
++++ b/app/views/resetController.py
+@@ -60,10 +60,15 @@
+     elif(request.method == "POST"):
+         return processReset(request)
+     else:
+-        h = httplib2.Http(".cache", disable_ssl_certificate_validation=True) #CWE-295
+-        h.add_credentials('thiswaskevinsidea','hardcode') #CWE-798
+-        data=h.request("http://localhost/",method='GET')
+-        return data
++        # Use secure HTTPS request without disabling certificate verification
++        h = httplib2.Http(".cache")
++        # No hard‑coded credentials; authentication should be handled elsewhere
++        try:
++            resp, content = h.request("https://localhost/", method='GET')
++        except Exception as e:
++            logger.error("Failed to perform health check request: %s", e)
++            resp, content = None, None
++        return resp, content
+ 
+ # Loads the reset webpage
+ def showReset(request):

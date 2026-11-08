@@ -1,0 +1,23 @@
+{
+  "status": "patch_proposed",
+  "addressed_finding_ids": ["F0041","F0042","F0043"],
+  "edits": [
+    {
+      "start_line": 27,
+      "end_line": 27,
+      "replacement": "DEBUG = False"
+    },
+    {
+      "start_line": 30,
+      "end_line": 30,
+      "replacement": "ALLOWED_HOSTS = []  # Populate with your domain names in production"
+    },
+    {
+      "start_line": 49,
+      "end_line": 49,
+      "replacement": "    'django.middleware.csrf.CsrfViewMiddleware',"
+    }
+  ],
+  "explanation": "Set DEBUG to False to avoid exposing detailed error information. Restrict ALLOWED_HOSTS to an empty list with a comment, requiring proper host configuration for production. Re‑enable the CSRF protection middleware by uncommenting it, restoring default CSRF defense.",
+  "review_notes": "Verify that the production deployment sets ALLOWED_HOSTS appropriately (e.g., ['example.com']). Ensure any custom middleware ordering remains correct after uncommenting CSRF middleware. Confirm that disabling DEBUG does not affect needed development debugging; use environment-specific settings if required."
+}
