@@ -24,7 +24,7 @@ Use human judgments to distinguish true vulnerabilities with correct patches, tr
 
 - app/models.py: patch_proposed; findings F0009. Diff: diffs/app/models.py.diff.
 
-- app/views/blabController.py: invalid_proposal; findings F0010, F0011, F0012, F0013, F0014, F0015, F0016, F0017, F0018. Diff: none.
+- app/views/blabController.py: patch_proposed; findings F0010, F0011, F0012, F0013, F0014, F0015, F0016, F0017, F0018. Diff: diffs/app/views/blabController.py.diff.
 
 - app/views/homeController.py: patch_proposed; findings F0019. Diff: diffs/app/views/homeController.py.diff.
 
