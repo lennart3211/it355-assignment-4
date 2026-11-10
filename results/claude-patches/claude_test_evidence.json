@@ -1,0 +1,167 @@
+{
+  "checks": [
+    {
+      "findings": "ALL",
+      "test": "Syntax app/admin.py",
+      "status": "PASS",
+      "evidence": "Python AST parses successfully"
+    },
+    {
+      "findings": "ALL",
+      "test": "Syntax app/commands/IgnoreCommand.py",
+      "status": "PASS",
+      "evidence": "Python AST parses successfully"
+    },
+    {
+      "findings": "ALL",
+      "test": "Syntax app/commands/ListenCommand.py",
+      "status": "PASS",
+      "evidence": "Python AST parses successfully"
+    },
+    {
+      "findings": "ALL",
+      "test": "Syntax app/forms.py",
+      "status": "PASS",
+      "evidence": "Python AST parses successfully"
+    },
+    {
+      "findings": "ALL",
+      "test": "Syntax app/models.py",
+      "status": "PASS",
+      "evidence": "Python AST parses successfully"
+    },
+    {
+      "findings": "ALL",
+      "test": "Syntax app/views/homeController.py",
+      "status": "PASS",
+      "evidence": "Python AST parses successfully"
+    },
+    {
+      "findings": "ALL",
+      "test": "Syntax app/views/resetController.py",
+      "status": "PASS",
+      "evidence": "Python AST parses successfully"
+    },
+    {
+      "findings": "ALL",
+      "test": "Syntax app/views/toolsController.py",
+      "status": "PASS",
+      "evidence": "Python AST parses successfully"
+    },
+    {
+      "findings": "ALL",
+      "test": "Syntax verademo-python/settings.py",
+      "status": "PASS",
+      "evidence": "Python AST parses successfully"
+    },
+    {
+      "findings": "F0002-F0004",
+      "test": "Parameterized SQL call structure",
+      "status": "PASS",
+      "evidence": "3 execute calls; 3 with parameter argument; runtime injection test still recommended"
+    },
+    {
+      "findings": "F0005-F0007",
+      "test": "Parameterized SQL call structure",
+      "status": "PASS",
+      "evidence": "3 execute calls; 3 with parameter argument; runtime injection test still recommended"
+    },
+    {
+      "findings": "F0030",
+      "test": "Shell execution removed",
+      "status": "PASS",
+      "evidence": "No os.system call in candidate"
+    },
+    {
+      "findings": "F0031",
+      "test": "Ping argument guard",
+      "status": "PASS",
+      "evidence": "Rejects leading hyphen and uses -- separator; platform behavior not tested"
+    },
+    {
+      "findings": "F0026",
+      "test": "TLS validation setting",
+      "status": "PASS",
+      "evidence": "Explicit certificate validation bypass absent; live TLS behavior not tested"
+    },
+    {
+      "findings": "F0027",
+      "test": "Hardcoded credentials",
+      "status": "PASS",
+      "evidence": "Credentials read from environment; deployment not tested"
+    },
+    {
+      "findings": "F0029",
+      "test": "Reset SQL parameterization",
+      "status": "PASS",
+      "evidence": "Two insertion paths use separate parameters; database behavior not tested"
+    },
+    {
+      "findings": "F0028",
+      "test": "Reset endpoint CSRF",
+      "status": "NEEDS REVIEW",
+      "evidence": "Middleware enabled in settings, but endpoint-level CSRF enforcement not exercised"
+    },
+    {
+      "findings": "F0012",
+      "test": "Password storage integration",
+      "status": "NEEDS REVIEW",
+      "evidence": "Hasher changed; existing login/reset flows not tested for compatibility"
+    },
+    {
+      "findings": "F0030-F0031",
+      "test": "Tools runtime behavior",
+      "status": "NEEDS REVIEW",
+      "evidence": "Shell/argument protections inspected; ping/fortune runtime behavior not exercised"
+    },
+    {
+      "findings": "F0013-F0024",
+      "test": "blabController patches",
+      "status": "NO PATCH",
+      "evidence": "Generation status invalid_proposal; no candidate to test"
+    },
+    {
+      "findings": "F0032-F0060",
+      "test": "userController patches",
+      "status": "NO PATCH",
+      "evidence": "Generation status api_error; no candidate to test"
+    },
+    {
+      "findings": "F0001",
+      "test": "Runtime admin",
+      "status": "PASS",
+      "evidence": "Password absent from admin list and excluded from admin form"
+    },
+    {
+      "findings": "F0008-F0009",
+      "test": "Runtime forms",
+      "status": "PASS",
+      "evidence": "Password fields render with PasswordInput widgets"
+    },
+    {
+      "findings": "F0010-F0012",
+      "test": "Runtime models",
+      "status": "PASS",
+      "evidence": "algorithm=pbkdf2_sha256; hint=None; password differs from username"
+    },
+    {
+      "findings": "F0061-F0065",
+      "test": "Runtime settings",
+      "status": "PASS",
+      "evidence": "DEBUG=False; hosts=['localhost', '127.0.0.1', 'testserver']; middleware enabled; env secret used"
+    },
+    {
+      "findings": "F0025",
+      "test": "Runtime home",
+      "status": "PASS",
+      "evidence": "status=302; location=/feed"
+    },
+    {
+      "findings": "ALL",
+      "test": "Django system check",
+      "status": "PASS",
+      "evidence": "WARNING: Expected Python version 3.12.3, but version 3.13.0 detected. \n This may cause unexpected functionality or program failure.\nSystem check identified no issues (0 silenced)."
+    }
+  ],
+  "note": "Focused test evidence; PASS is scoped to the specific check, not final patch approval."
+}
